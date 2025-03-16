@@ -1,0 +1,37 @@
+# Binary files
+*.exe
+*.out
+*.o
+*.a
+*.so
+*.dll
+
+# Logs
+logs/
+*.log
+
+# Go modules and dependencies
+go.sum
+vendor/
+
+# IDE & Editor specific files
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Build and cache files
+bin/
+build/
+dist/
+tmp/
+*.test
+*.prof
+cover.out
+
+# Environment & Secrets
+.env
+.env.local
+.env.production
+.env.development
