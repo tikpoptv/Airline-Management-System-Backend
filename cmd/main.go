@@ -2,6 +2,7 @@ package main
 
 import (
 	"airline-management-system/config"
+	customMiddleware "airline-management-system/internal/middleware" // 👈 ตั้ง alias ให้ไม่ชนกับ echo/middleware
 	"airline-management-system/internal/router"
 	"log"
 
@@ -11,14 +12,17 @@ import (
 
 func main() {
 	config.LoadEnv()
-
 	db := config.InitDB()
 
 	e := echo.New()
 
-	e.Use(middleware.Logger())
+	// ✅ ใช้แค่ Logger ตัวเดียวของเรา
+	e.Use(customMiddleware.ColoredLoggerMiddleware)
+
+	// ✅ Panic-safe
 	e.Use(middleware.Recover())
 
+	// Setup routes
 	router.SetupRoutes(e, db)
 
 	port := config.GetEnv("PORT")
