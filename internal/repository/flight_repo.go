@@ -16,7 +16,12 @@ func NewFlightRepository(db *gorm.DB) *FlightRepository {
 
 func (r *FlightRepository) GetAllFlights() ([]flight.Flight, error) {
 	var flights []flight.Flight
-	if err := r.db.Find(&flights).Error; err != nil {
+	if err := r.db.
+		Preload("Aircraft").
+		Preload("Route").
+		Preload("Route.FromAirport").
+		Preload("Route.ToAirport").
+		Find(&flights).Error; err != nil {
 		return nil, err
 	}
 	return flights, nil
@@ -28,7 +33,12 @@ func (r *FlightRepository) CreateFlight(flight *flight.Flight) error {
 
 func (r *FlightRepository) GetFlightByID(id uint) (*flight.Flight, error) {
 	var f flight.Flight
-	if err := r.db.First(&f, id).Error; err != nil {
+	if err := r.db.
+		Preload("Aircraft").
+		Preload("Route").
+		Preload("Route.FromAirport").
+		Preload("Route.ToAirport").
+		First(&f, id).Error; err != nil {
 		return nil, err
 	}
 	return &f, nil

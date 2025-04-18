@@ -27,6 +27,16 @@ func SetupRoutes(e *echo.Echo, db *gorm.DB) {
 	flightService := service.NewFlightService(flightRepo)
 	flightHandler := handler.NewFlightHandler(flightService)
 
+	// Route
+	routeRepo := repository.NewRouteRepository(db)
+	routeService := service.NewRouteService(routeRepo)
+	routeHandler := handler.NewRouteHandler(routeService)
+
+	// Airport
+	airportRepo := repository.NewAirportRepository(db)
+	airportService := service.NewAirportService(airportRepo)
+	airportHandler := handler.NewAirportHandler(airportService)
+
 	// Main API group
 	api := e.Group("/api")
 	api.POST("/auth/register", authHandler.RegisterPassenger)
@@ -62,5 +72,21 @@ func SetupRoutes(e *echo.Echo, db *gorm.DB) {
 	flightGroup.PUT("/:id", flightHandler.UpdateFlight)
 	flightGroup.PUT("/:id/details", flightHandler.UpdateFlightDetails)
 	flightGroup.DELETE("/:id", flightHandler.DeleteFlight)
+
+	// Route Routes (admin only)
+	routeGroup := api.Group("/routes")
+	routeGroup.Use(middleware.JWTMiddleware)
+	routeGroup.Use(middleware.RequireRole("admin"))
+
+	routeGroup.GET("", routeHandler.ListRoutes)
+	routeGroup.POST("", routeHandler.CreateRoute)
+
+	// Route Details (admin only)
+	airportGroup := api.Group("/airports")
+	airportGroup.Use(middleware.JWTMiddleware)
+	airportGroup.Use(middleware.RequireRole("admin"))
+
+	airportGroup.GET("", airportHandler.ListAirports)
+	airportGroup.POST("", airportHandler.CreateAirport)
 
 }
