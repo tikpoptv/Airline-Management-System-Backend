@@ -34,3 +34,7 @@ func (s *CrewService) CreateCrew(req *crew.CreateCrewRequest) (*crew.Crew, error
 
 	return newCrew, nil
 }
+
+func (s *CrewService) GetCrewByID(id uint) (*crew.GetCrew, error) {
+	return s.repo.GetCrewByID(id)
+}

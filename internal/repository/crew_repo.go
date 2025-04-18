@@ -25,3 +25,11 @@ func (r *CrewRepository) GetAllCrew() ([]crew.GetCrew, error) {
 func (r *CrewRepository) CreateCrew(c *crew.Crew) error {
 	return r.db.Create(c).Error
 }
+
+func (r *CrewRepository) GetCrewByID(id uint) (*crew.GetCrew, error) {
+	var c crew.GetCrew
+	if err := r.db.Preload("User").First(&c, id).Error; err != nil {
+		return nil, err
+	}
+	return &c, nil
+}

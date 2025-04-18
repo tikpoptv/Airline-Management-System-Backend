@@ -3,6 +3,7 @@ package handler
 import (
 	"airline-management-system/internal/service"
 	"net/http"
+	"strconv"
 
 	"github.com/labstack/echo/v4"
 
@@ -41,4 +42,19 @@ func (h *CrewHandler) CreateCrew(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusCreated, newCrew)
+}
+
+func (h *CrewHandler) GetCrewDetail(c echo.Context) error {
+	idParam := c.Param("id")
+	id, err := strconv.ParseUint(idParam, 10, 64)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": "invalid crew ID"})
+	}
+
+	crew, err := h.crewService.GetCrewByID(uint(id))
+	if err != nil {
+		return c.JSON(http.StatusNotFound, echo.Map{"error": "crew not found"})
+	}
+
+	return c.JSON(http.StatusOK, crew)
 }
