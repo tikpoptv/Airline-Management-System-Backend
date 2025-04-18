@@ -2,7 +2,7 @@ package main
 
 import (
 	"airline-management-system/config"
-	customMiddleware "airline-management-system/internal/middleware" // 👈 ตั้ง alias ให้ไม่ชนกับ echo/middleware
+	customMiddleware "airline-management-system/internal/middleware"
 	"airline-management-system/internal/router"
 	"log"
 
@@ -15,6 +15,9 @@ func main() {
 	db := config.InitDB()
 
 	e := echo.New()
+
+	// ✅ Register custom validator
+	e.Validator = customMiddleware.NewValidator()
 
 	// ✅ ใช้แค่ Logger ตัวเดียวของเรา
 	e.Use(customMiddleware.ColoredLoggerMiddleware)
