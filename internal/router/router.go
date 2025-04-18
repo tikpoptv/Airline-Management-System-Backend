@@ -37,6 +37,11 @@ func SetupRoutes(e *echo.Echo, db *gorm.DB) {
 	airportService := service.NewAirportService(airportRepo)
 	airportHandler := handler.NewAirportHandler(airportService)
 
+	// Crew
+	crewRepo := repository.NewCrewRepository(db)
+	crewService := service.NewCrewService(crewRepo)
+	crewHandler := handler.NewCrewHandler(crewService)
+
 	// Main API group
 	api := e.Group("/api")
 	api.POST("/auth/register", authHandler.RegisterPassenger)
@@ -88,5 +93,12 @@ func SetupRoutes(e *echo.Echo, db *gorm.DB) {
 
 	airportGroup.GET("", airportHandler.ListAirports)
 	airportGroup.POST("", airportHandler.CreateAirport)
+
+	// Crew Routes (admin only)
+	crewGroup := api.Group("/crew")
+	crewGroup.Use(middleware.JWTMiddleware)
+	crewGroup.Use(middleware.RequireRole("admin"))
+
+	crewGroup.GET("", crewHandler.ListCrew)
 
 }
