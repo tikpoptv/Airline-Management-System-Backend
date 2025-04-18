@@ -100,5 +100,6 @@ func SetupRoutes(e *echo.Echo, db *gorm.DB) {
 	crewGroup.Use(middleware.RequireRole("admin"))
 
 	crewGroup.GET("", crewHandler.ListCrew)
+	crewGroup.POST("", crewHandler.CreateCrew)
 
 }

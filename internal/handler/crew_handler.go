@@ -5,6 +5,8 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
+
+	crewModel "airline-management-system/internal/models/crew"
 )
 
 type CrewHandler struct {
@@ -22,4 +24,21 @@ func (h *CrewHandler) ListCrew(c echo.Context) error {
 	}
 	return c.JSON(http.StatusOK, crews)
 
+}
+
+func (h *CrewHandler) CreateCrew(c echo.Context) error {
+	var req crewModel.CreateCrewRequest
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": "invalid request"})
+	}
+	if err := c.Validate(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": err.Error()})
+	}
+
+	newCrew, err := h.crewService.CreateCrew(&req)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": err.Error()})
+	}
+
+	return c.JSON(http.StatusCreated, newCrew)
 }
