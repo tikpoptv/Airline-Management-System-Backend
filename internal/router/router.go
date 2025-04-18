@@ -102,5 +102,8 @@ func SetupRoutes(e *echo.Echo, db *gorm.DB) {
 	crewGroup.GET("", crewHandler.ListCrew)
 	crewGroup.POST("", crewHandler.CreateCrew)
 	crewGroup.GET("/:id", crewHandler.GetCrewDetail)
+	crewGroup.PUT("/:id", crewHandler.UpdateCrew)
+	crewGroup.DELETE("/:id", crewHandler.DeleteCrew)
+	crewGroup.GET("/:id/flight-hours", crewHandler.GetCrewFlightHours)
 
 }

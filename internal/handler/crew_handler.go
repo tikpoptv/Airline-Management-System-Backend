@@ -58,3 +58,55 @@ func (h *CrewHandler) GetCrewDetail(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, crew)
 }
+
+func (h *CrewHandler) UpdateCrew(c echo.Context) error {
+	idParam := c.Param("id")
+	id, err := strconv.ParseUint(idParam, 10, 64)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": "invalid crew ID"})
+	}
+
+	var req crewModel.UpdateCrewRequest
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": "invalid request"})
+	}
+
+	if err := h.crewService.UpdateCrew(uint(id), &req); err != nil {
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": err.Error()})
+	}
+
+	return c.JSON(http.StatusOK, echo.Map{"message": "crew updated successfully"})
+}
+
+func (h *CrewHandler) DeleteCrew(c echo.Context) error {
+	idParam := c.Param("id")
+	id, err := strconv.ParseUint(idParam, 10, 64)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": "invalid crew ID"})
+	}
+
+	ok, err := h.crewService.DeleteCrew(uint(id))
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "internal error"})
+	}
+	if !ok {
+		return c.JSON(http.StatusNotFound, echo.Map{"error": "crew not found"})
+	}
+
+	return c.JSON(http.StatusOK, echo.Map{"message": "crew deleted successfully"})
+}
+
+func (h *CrewHandler) GetCrewFlightHours(c echo.Context) error {
+	idParam := c.Param("id")
+	id, err := strconv.ParseUint(idParam, 10, 64)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": "invalid crew ID"})
+	}
+
+	result, err := h.crewService.GetCrewFlightHours(uint(id))
+	if err != nil {
+		return c.JSON(http.StatusNotFound, echo.Map{"error": "crew not found"})
+	}
+
+	return c.JSON(http.StatusOK, result)
+}
