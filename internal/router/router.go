@@ -25,7 +25,11 @@ func SetupRoutes(e *echo.Echo, db *gorm.DB) {
 	// Flight
 	flightRepo := repository.NewFlightRepository(db)
 	flightService := service.NewFlightService(flightRepo)
-	flightHandler := handler.NewFlightHandler(flightService)
+
+	flightAssignmentRepo := repository.NewFlightAssignmentRepository(db)
+	flightAssignmentService := service.NewFlightAssignmentService(flightAssignmentRepo)
+
+	flightHandler := handler.NewFlightHandler(flightService, flightAssignmentService)
 
 	// Route
 	routeRepo := repository.NewRouteRepository(db)
@@ -77,6 +81,10 @@ func SetupRoutes(e *echo.Echo, db *gorm.DB) {
 	flightGroup.PUT("/:id", flightHandler.UpdateFlight)
 	flightGroup.PUT("/:id/details", flightHandler.UpdateFlightDetails)
 	flightGroup.DELETE("/:id", flightHandler.DeleteFlight)
+
+	// Flight Assignment Routes (admin only)
+	flightGroup.POST("/:flight_id/assign-crew", flightHandler.AssignCrewToFlight)
+	flightGroup.GET("/:flight_id/crew", flightHandler.GetFlightCrewList)
 
 	// Route Routes (admin only)
 	routeGroup := api.Group("/routes")

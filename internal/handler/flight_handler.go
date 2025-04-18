@@ -8,17 +8,22 @@ import (
 
 	"gorm.io/gorm"
 
+	assignModel "airline-management-system/internal/models/assignment"
 	flightModel "airline-management-system/internal/models/flight"
 
 	"github.com/labstack/echo/v4"
 )
 
 type FlightHandler struct {
-	flightService *service.FlightService
+	flightService     *service.FlightService
+	assignmentService *service.FlightAssignmentService
 }
 
-func NewFlightHandler(service *service.FlightService) *FlightHandler {
-	return &FlightHandler{flightService: service}
+func NewFlightHandler(flightService *service.FlightService, assignmentService *service.FlightAssignmentService) *FlightHandler {
+	return &FlightHandler{
+		flightService:     flightService,
+		assignmentService: assignmentService,
+	}
 }
 
 func (h *FlightHandler) ListFlights(c echo.Context) error {
@@ -118,4 +123,47 @@ func (h *FlightHandler) DeleteFlight(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, echo.Map{"message": "flight deleted successfully"})
+}
+
+func (h *FlightHandler) AssignCrewToFlight(c echo.Context) error {
+	flightIDParam := c.Param("flight_id")
+	flightID, err := strconv.ParseUint(flightIDParam, 10, 64)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": "invalid flight ID"})
+	}
+
+	var req assignModel.AssignCrewRequest
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": "invalid request"})
+	}
+	if err := c.Validate(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": err.Error()})
+	}
+
+	result, err := h.assignmentService.AssignCrewToFlight(uint(flightID), &req)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": err.Error()})
+	}
+
+	return c.JSON(http.StatusCreated, echo.Map{
+		"flight_id":      result.FlightID,
+		"crew_id":        result.CrewID,
+		"role_in_flight": result.RoleInFlight,
+		"message":        "Crew assigned to flight successfully",
+	})
+}
+
+func (h *FlightHandler) GetFlightCrewList(c echo.Context) error {
+	flightIDParam := c.Param("flight_id")
+	flightID, err := strconv.ParseUint(flightIDParam, 10, 64)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": "invalid flight ID"})
+	}
+
+	crewList, err := h.assignmentService.GetCrewByFlightID(uint(flightID))
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "failed to fetch crew list"})
+	}
+
+	return c.JSON(http.StatusOK, crewList)
 }
