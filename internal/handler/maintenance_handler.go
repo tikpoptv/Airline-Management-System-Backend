@@ -85,3 +85,23 @@ func (h *MaintenanceHandler) UpdateMaintenanceLog(c echo.Context) error {
 		"message": "maintenance log updated successfully",
 	})
 }
+
+func (h *MaintenanceHandler) DeleteMaintenanceLog(c echo.Context) error {
+	idParam := c.Param("id")
+	idUint, err := strconv.ParseUint(idParam, 10, 64)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": "invalid log ID"})
+	}
+
+	err = h.maintenanceService.DeleteLogByID(uint(idUint))
+	if err != nil {
+		if err.Error() == "maintenance log not found" {
+			return c.JSON(http.StatusNotFound, echo.Map{"error": err.Error()})
+		}
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "failed to delete maintenance log"})
+	}
+
+	return c.JSON(http.StatusOK, echo.Map{
+		"message": "maintenance log deleted successfully",
+	})
+}

@@ -48,3 +48,11 @@ func (r *MaintenanceRepository) UpdateLog(id uint, updates map[string]interface{
 func (r *MaintenanceRepository) DB() *gorm.DB {
 	return r.db
 }
+
+func (r *MaintenanceRepository) DeleteLogByID(id uint) (bool, error) {
+	tx := r.db.Where("log_id = ?", id).Delete(&maintenance.MaintenanceLog{})
+	if tx.Error != nil {
+		return false, tx.Error
+	}
+	return tx.RowsAffected > 0, nil
+}

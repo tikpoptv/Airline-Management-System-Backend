@@ -76,3 +76,14 @@ func (s *MaintenanceService) UpdateLog(id uint, req *maintenance.UpdateMaintenan
 
 	return nil
 }
+
+func (s *MaintenanceService) DeleteLogByID(id uint) error {
+	found, err := s.repo.DeleteLogByID(id)
+	if err != nil {
+		return err
+	}
+	if !found {
+		return errors.New("maintenance log not found")
+	}
+	return nil
+}
