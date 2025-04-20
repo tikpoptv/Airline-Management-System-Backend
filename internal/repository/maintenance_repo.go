@@ -38,3 +38,13 @@ func (r *MaintenanceRepository) GetLogByID(id uint) (*maintenance.MaintenanceLog
 	}
 	return &log, nil
 }
+
+func (r *MaintenanceRepository) UpdateLog(id uint, updates map[string]interface{}) error {
+	return r.db.Model(&maintenance.MaintenanceLog{}).
+		Where("log_id = ?", id).
+		Updates(updates).Error
+}
+
+func (r *MaintenanceRepository) DB() *gorm.DB {
+	return r.db
+}

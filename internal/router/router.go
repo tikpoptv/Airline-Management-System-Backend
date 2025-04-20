@@ -127,5 +127,6 @@ func SetupRoutes(e *echo.Echo, db *gorm.DB) {
 	maintenanceGroup.GET("", maintenanceHandler.ListMaintenanceLogs)
 	maintenanceGroup.POST("", maintenanceHandler.CreateMaintenanceLog)
 	maintenanceGroup.GET("/:id", maintenanceHandler.GetMaintenanceLogDetail)
+	maintenanceGroup.PUT("/:id", maintenanceHandler.UpdateMaintenanceLog)
 
 }

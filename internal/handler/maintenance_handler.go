@@ -63,3 +63,25 @@ func (h *MaintenanceHandler) GetMaintenanceLogDetail(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, log)
 }
+
+func (h *MaintenanceHandler) UpdateMaintenanceLog(c echo.Context) error {
+	idParam := c.Param("id")
+	idUint, err := strconv.ParseUint(idParam, 10, 64)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": "invalid log ID"})
+	}
+
+	var req maintenance.UpdateMaintenanceLogRequest
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": "invalid request"})
+	}
+
+	err = h.maintenanceService.UpdateLog(uint(idUint), &req)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": err.Error()})
+	}
+
+	return c.JSON(http.StatusOK, echo.Map{
+		"message": "maintenance log updated successfully",
+	})
+}
