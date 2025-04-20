@@ -17,10 +17,15 @@ func NewMaintenanceRepository(db *gorm.DB) *MaintenanceRepository {
 func (r *MaintenanceRepository) GetAllLogs() ([]maintenance.MaintenanceLog, error) {
 	var logs []maintenance.MaintenanceLog
 	err := r.db.Preload("Aircraft").
-		Order("date_of_maintenance DESC").
+		Order("log_id ASC").
 		Find(&logs).Error
+
 	if err != nil {
 		return nil, err
 	}
 	return logs, nil
+}
+
+func (r *MaintenanceRepository) CreateLog(log *maintenance.MaintenanceLog) error {
+	return r.db.Create(log).Error
 }

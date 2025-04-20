@@ -125,4 +125,6 @@ func SetupRoutes(e *echo.Echo, db *gorm.DB) {
 	maintenanceGroup.Use(middleware.RequireRole("admin", "maintenance"))
 
 	maintenanceGroup.GET("", maintenanceHandler.ListMaintenanceLogs)
+	maintenanceGroup.POST("", maintenanceHandler.CreateMaintenanceLog)
+
 }
