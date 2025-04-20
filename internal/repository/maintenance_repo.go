@@ -29,3 +29,12 @@ func (r *MaintenanceRepository) GetAllLogs() ([]maintenance.MaintenanceLog, erro
 func (r *MaintenanceRepository) CreateLog(log *maintenance.MaintenanceLog) error {
 	return r.db.Create(log).Error
 }
+
+func (r *MaintenanceRepository) GetLogByID(id uint) (*maintenance.MaintenanceLog, error) {
+	var log maintenance.MaintenanceLog
+	err := r.db.Preload("Aircraft").First(&log, "log_id = ?", id).Error
+	if err != nil {
+		return nil, err
+	}
+	return &log, nil
+}

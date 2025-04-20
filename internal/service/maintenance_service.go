@@ -38,3 +38,7 @@ func (s *MaintenanceService) CreateLog(req *maintenance.CreateMaintenanceLogRequ
 
 	return log, nil
 }
+
+func (s *MaintenanceService) GetLogByID(id uint) (*maintenance.MaintenanceLog, error) {
+	return s.repo.GetLogByID(id)
+}

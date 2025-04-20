@@ -3,6 +3,7 @@ package handler
 import (
 	"airline-management-system/internal/service"
 	"net/http"
+	"strconv"
 
 	"airline-management-system/internal/models/maintenance"
 
@@ -46,4 +47,19 @@ func (h *MaintenanceHandler) CreateMaintenanceLog(c echo.Context) error {
 		"message": "maintenance log created successfully",
 		"log_id":  newLog.LogID,
 	})
+}
+
+func (h *MaintenanceHandler) GetMaintenanceLogDetail(c echo.Context) error {
+	idParam := c.Param("id")
+	idUint, err := strconv.ParseUint(idParam, 10, 64)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": "invalid log ID"})
+	}
+
+	log, err := h.maintenanceService.GetLogByID(uint(idUint))
+	if err != nil {
+		return c.JSON(http.StatusNotFound, echo.Map{"error": "maintenance log not found"})
+	}
+
+	return c.JSON(http.StatusOK, log)
 }
