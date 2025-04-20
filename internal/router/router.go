@@ -46,6 +46,11 @@ func SetupRoutes(e *echo.Echo, db *gorm.DB) {
 	crewService := service.NewCrewService(crewRepo)
 	crewHandler := handler.NewCrewHandler(crewService)
 
+	// Maintenance
+	maintenanceRepo := repository.NewMaintenanceRepository(db)
+	maintenanceService := service.NewMaintenanceService(maintenanceRepo)
+	maintenanceHandler := handler.NewMaintenanceHandler(maintenanceService)
+
 	// Main API group
 	api := e.Group("/api")
 	api.POST("/auth/register", authHandler.RegisterPassenger)
@@ -114,4 +119,10 @@ func SetupRoutes(e *echo.Echo, db *gorm.DB) {
 	crewGroup.DELETE("/:id", crewHandler.DeleteCrew)
 	crewGroup.GET("/:id/flight-hours", crewHandler.GetCrewFlightHours)
 
+	// Maintenance Routes (admin only)
+	maintenanceGroup := api.Group("/maintenance-logs")
+	maintenanceGroup.Use(middleware.JWTMiddleware)
+	maintenanceGroup.Use(middleware.RequireRole("admin", "maintenance"))
+
+	maintenanceGroup.GET("", maintenanceHandler.ListMaintenanceLogs)
 }
