@@ -17,10 +17,42 @@ func NewMaintenanceRepository(db *gorm.DB) *MaintenanceRepository {
 func (r *MaintenanceRepository) GetAllLogs() ([]maintenance.MaintenanceLog, error) {
 	var logs []maintenance.MaintenanceLog
 	err := r.db.Preload("Aircraft").
-		Order("date_of_maintenance DESC").
+		Order("log_id ASC").
 		Find(&logs).Error
+
 	if err != nil {
 		return nil, err
 	}
 	return logs, nil
+}
+
+func (r *MaintenanceRepository) CreateLog(log *maintenance.MaintenanceLog) error {
+	return r.db.Create(log).Error
+}
+
+func (r *MaintenanceRepository) GetLogByID(id uint) (*maintenance.MaintenanceLog, error) {
+	var log maintenance.MaintenanceLog
+	err := r.db.Preload("Aircraft").First(&log, "log_id = ?", id).Error
+	if err != nil {
+		return nil, err
+	}
+	return &log, nil
+}
+
+func (r *MaintenanceRepository) UpdateLog(id uint, updates map[string]interface{}) error {
+	return r.db.Model(&maintenance.MaintenanceLog{}).
+		Where("log_id = ?", id).
+		Updates(updates).Error
+}
+
+func (r *MaintenanceRepository) DB() *gorm.DB {
+	return r.db
+}
+
+func (r *MaintenanceRepository) DeleteLogByID(id uint) (bool, error) {
+	tx := r.db.Where("log_id = ?", id).Delete(&maintenance.MaintenanceLog{})
+	if tx.Error != nil {
+		return false, tx.Error
+	}
+	return tx.RowsAffected > 0, nil
 }
