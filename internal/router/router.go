@@ -51,6 +51,11 @@ func SetupRoutes(e *echo.Echo, db *gorm.DB) {
 	maintenanceService := service.NewMaintenanceService(maintenanceRepo)
 	maintenanceHandler := handler.NewMaintenanceHandler(maintenanceService)
 
+	// Payment
+	paymentRepo := repository.NewPaymentRepository(db)
+	paymentService := service.NewPaymentService(paymentRepo)
+	paymentHandler := handler.NewPaymentHandler(paymentService)
+
 	// Main API group
 	api := e.Group("/api")
 	api.POST("/auth/register", authHandler.RegisterPassenger)
@@ -130,4 +135,9 @@ func SetupRoutes(e *echo.Echo, db *gorm.DB) {
 	maintenanceGroup.PUT("/:id", maintenanceHandler.UpdateMaintenanceLog)
 	maintenanceGroup.DELETE("/:id", maintenanceHandler.DeleteMaintenanceLog)
 
+	// Payment Routes (admin only)
+	paymentGroup := api.Group("/payments")
+	paymentGroup.Use(middleware.JWTMiddleware)
+	paymentGroup.Use(middleware.RequireRole("admin", "finance", "maintenance"))
+	paymentGroup.GET("", paymentHandler.ListPayments)
 }
