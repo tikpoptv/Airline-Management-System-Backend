@@ -16,3 +16,7 @@ func NewPaymentService(repo *repository.PaymentRepository) *PaymentService {
 func (s *PaymentService) GetAllPayments() ([]payment.Payment, error) {
 	return s.repo.GetAllPayments()
 }
+
+func (s *PaymentService) GetPaymentByID(id uint) (*payment.Payment, error) {
+	return s.repo.GetPaymentByID(id)
+}

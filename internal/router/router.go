@@ -140,4 +140,6 @@ func SetupRoutes(e *echo.Echo, db *gorm.DB) {
 	paymentGroup.Use(middleware.JWTMiddleware)
 	paymentGroup.Use(middleware.RequireRole("admin", "finance", "maintenance"))
 	paymentGroup.GET("", paymentHandler.ListPayments)
+	paymentGroup.GET("/:id", paymentHandler.GetPaymentDetail)
+
 }
