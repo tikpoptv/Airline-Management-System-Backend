@@ -147,10 +147,10 @@ func SetupRoutes(e *echo.Echo, db *gorm.DB) {
 	maintenanceGroup.Use(middleware.RequireRole("admin", "maintenance"))
 
 	maintenanceGroup.GET("", maintenanceHandler.ListMaintenanceLogs)
-	maintenanceGroup.POST("", maintenanceHandler.CreateMaintenanceLog)
-	maintenanceGroup.GET("/:id", maintenanceHandler.GetMaintenanceLogDetail)
-	maintenanceGroup.PUT("/:id", maintenanceHandler.UpdateMaintenanceLog)
-	maintenanceGroup.DELETE("/:id", maintenanceHandler.DeleteMaintenanceLog)
+	// maintenanceGroup.POST("", maintenanceHandler.CreateMaintenanceLog)
+	// maintenanceGroup.GET("/:id", maintenanceHandler.GetMaintenanceLogDetail)
+	// maintenanceGroup.PUT("/:id", maintenanceHandler.UpdateMaintenanceLog)
+	// maintenanceGroup.DELETE("/:id", maintenanceHandler.DeleteMaintenanceLog)
 
 	// Payment Routes (admin only)
 	paymentGroup := api.Group("/payments")

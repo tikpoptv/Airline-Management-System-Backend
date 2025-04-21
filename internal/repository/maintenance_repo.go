@@ -14,13 +14,23 @@ func NewMaintenanceRepository(db *gorm.DB) *MaintenanceRepository {
 	return &MaintenanceRepository{db}
 }
 
-func (r *MaintenanceRepository) GetAllLogs() ([]maintenance.MaintenanceLog, error) {
+func (r *MaintenanceRepository) GetAllLogs(filters map[string]interface{}) ([]maintenance.MaintenanceLog, error) {
 	var logs []maintenance.MaintenanceLog
-	err := r.db.Preload("Aircraft").
-		Order("log_id ASC").
-		Find(&logs).Error
+	query := r.db.
+		Preload("Aircraft").
+		Preload("AssignedUser")
 
-	if err != nil {
+	if status, ok := filters["status"]; ok {
+		query = query.Where("status = ?", status)
+	}
+	if assignedTo, ok := filters["assigned_to"]; ok {
+		query = query.Where("assigned_to = ?", assignedTo)
+	}
+	if aircraftID, ok := filters["aircraft_id"]; ok {
+		query = query.Where("aircraft_id = ?", aircraftID)
+	}
+
+	if err := query.Order("log_id ASC").Find(&logs).Error; err != nil {
 		return nil, err
 	}
 	return logs, nil
