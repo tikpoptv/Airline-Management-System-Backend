@@ -31,3 +31,20 @@ func (r *FlightAssignmentRepository) GetCrewByFlightID(flightID uint) ([]assignm
 	}
 	return result, nil
 }
+
+func (r *FlightAssignmentRepository) GetAssignedFlightsByCrewID(crewID uint) ([]assignment.GetFlightCrewAssignment, error) {
+	var assignments []assignment.GetFlightCrewAssignment
+	err := r.db.
+		Preload("Flight.Aircraft").
+		Preload("Flight.Route").
+		Preload("Flight.Route.FromAirport").
+		Preload("Flight.Route.ToAirport").
+		Preload("Crew").
+		Where("crew_id = ?", crewID).
+		Find(&assignments).Error
+
+	if err != nil {
+		return nil, err
+	}
+	return assignments, nil
+}

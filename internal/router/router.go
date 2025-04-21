@@ -56,6 +56,11 @@ func SetupRoutes(e *echo.Echo, db *gorm.DB) {
 	paymentService := service.NewPaymentService(paymentRepo)
 	paymentHandler := handler.NewPaymentHandler(paymentService)
 
+	// Crew Assignment
+	assignmentRepo := repository.NewFlightAssignmentRepository(db)
+	crewAssignmentService := service.NewCrewAssignmentService(assignmentRepo)
+	crewAssignmentHandler := handler.NewCrewAssignmentHandler(crewAssignmentService)
+
 	// Main API group
 	api := e.Group("/api")
 	api.POST("/auth/register", authHandler.RegisterPassenger)
@@ -123,6 +128,11 @@ func SetupRoutes(e *echo.Echo, db *gorm.DB) {
 	crewGroup.PUT("/:id", crewHandler.UpdateCrew)
 	crewGroup.DELETE("/:id", crewHandler.DeleteCrew)
 	crewGroup.GET("/:id/flight-hours", crewHandler.GetCrewFlightHours)
+
+	api.GET("/crew/:id/assignments", crewAssignmentHandler.GetAssignedFlights,
+		middleware.JWTMiddleware,
+		middleware.RequireRole("admin", "crew", "maintenance"),
+	)
 
 	// Maintenance Routes (admin only)
 	maintenanceGroup := api.Group("/maintenance-logs")
