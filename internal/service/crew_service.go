@@ -5,6 +5,7 @@ import (
 	"airline-management-system/internal/repository"
 	"errors"
 	"strings"
+	"time"
 )
 
 type CrewService struct {
@@ -83,4 +84,32 @@ func (s *CrewService) DeleteCrew(id uint) (bool, error) {
 
 func (s *CrewService) GetCrewFlightHours(id uint) (*crew.CrewFlightHoursResponse, error) {
 	return s.repo.GetCrewFlightHours(id)
+}
+
+func (s *CrewService) UpdateCrewProfileFromUser(userID uint, req *crew.UpdateCrewProfileRequest) error {
+	crewID, err := s.repo.GetCrewIDByUserID(userID)
+	if err != nil {
+		return errors.New("crew not found for this user")
+	}
+
+	// Validate date
+	licenseDate, err := time.Parse("2006-01-02", req.LicenseExpiryDate)
+	if err != nil || licenseDate.Before(time.Now()) {
+		return errors.New("invalid license expiry date")
+	}
+	passportDate, err := time.Parse("2006-01-02", req.PassportExpiryDate)
+	if err != nil || passportDate.Before(time.Now()) {
+		return errors.New("invalid passport expiry date")
+	}
+
+	// Prepare update map
+	update := map[string]interface{}{
+		"name":                 req.Name,
+		"passport_number":      req.PassportNumber,
+		"role":                 req.Role,
+		"license_expiry_date":  licenseDate,
+		"passport_expiry_date": passportDate,
+	}
+
+	return s.repo.UpdateCrewProfileByID(crewID, update)
 }

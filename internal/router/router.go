@@ -134,6 +134,12 @@ func SetupRoutes(e *echo.Echo, db *gorm.DB) {
 		middleware.RequireRole("admin", "crew", "maintenance"),
 	)
 
+	api.PUT("/crew/me/update-profile",
+		crewHandler.UpdateMyCrewProfile,
+		middleware.JWTMiddleware,
+		middleware.RequireRole("crew"),
+	)
+
 	// Maintenance Routes (admin only)
 	maintenanceGroup := api.Group("/maintenance-logs")
 	maintenanceGroup.Use(middleware.JWTMiddleware)
