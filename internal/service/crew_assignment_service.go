@@ -3,16 +3,28 @@ package service
 import (
 	"airline-management-system/internal/models/assignment"
 	"airline-management-system/internal/repository"
+	"errors"
 )
 
 type CrewAssignmentService struct {
-	repo *repository.FlightAssignmentRepository
+	crewRepo       *repository.CrewRepository
+	assignmentRepo *repository.FlightAssignmentRepository
 }
 
-func NewCrewAssignmentService(repo *repository.FlightAssignmentRepository) *CrewAssignmentService {
-	return &CrewAssignmentService{repo}
+func NewCrewAssignmentService(
+	crewRepo *repository.CrewRepository,
+	assignmentRepo *repository.FlightAssignmentRepository,
+) *CrewAssignmentService {
+	return &CrewAssignmentService{
+		crewRepo:       crewRepo,
+		assignmentRepo: assignmentRepo,
+	}
 }
 
-func (s *CrewAssignmentService) GetAssignedFlightsByCrewID(crewID uint) ([]assignment.GetFlightCrewAssignment, error) {
-	return s.repo.GetAssignedFlightsByCrewID(crewID)
+func (s *CrewAssignmentService) GetAssignedFlightsByUserID(userID uint) ([]assignment.GetFlightCrewAssignment, error) {
+	crewID, err := s.crewRepo.GetCrewIDByUserID(userID)
+	if err != nil {
+		return nil, errors.New("crew not found for this user")
+	}
+	return s.assignmentRepo.GetAssignedFlightsByCrewID(crewID)
 }

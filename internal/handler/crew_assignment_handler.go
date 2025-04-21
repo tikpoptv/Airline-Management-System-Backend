@@ -2,7 +2,6 @@ package handler
 
 import (
 	"net/http"
-	"strconv"
 
 	"airline-management-system/internal/service"
 
@@ -17,14 +16,15 @@ func NewCrewAssignmentHandler(s *service.CrewAssignmentService) *CrewAssignmentH
 	return &CrewAssignmentHandler{service: s}
 }
 
-func (h *CrewAssignmentHandler) GetAssignedFlights(c echo.Context) error {
-	idParam := c.Param("id")
-	idUint, err := strconv.ParseUint(idParam, 10, 64)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, echo.Map{"error": "invalid crew ID"})
+func (h *CrewAssignmentHandler) GetMyAssignedFlights(c echo.Context) error {
+	userIDRaw := c.Get("user_id")
+	userIDFloat, ok := userIDRaw.(float64)
+	if !ok {
+		return c.JSON(http.StatusUnauthorized, echo.Map{"error": "unauthorized"})
 	}
+	userID := uint(userIDFloat)
 
-	assignments, err := h.service.GetAssignedFlightsByCrewID(uint(idUint))
+	assignments, err := h.service.GetAssignedFlightsByUserID(userID)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "failed to retrieve assignments"})
 	}

@@ -58,7 +58,7 @@ func SetupRoutes(e *echo.Echo, db *gorm.DB) {
 
 	// Crew Assignment
 	assignmentRepo := repository.NewFlightAssignmentRepository(db)
-	crewAssignmentService := service.NewCrewAssignmentService(assignmentRepo)
+	crewAssignmentService := service.NewCrewAssignmentService(crewRepo, assignmentRepo)
 	crewAssignmentHandler := handler.NewCrewAssignmentHandler(crewAssignmentService)
 
 	// Main API group
@@ -129,9 +129,10 @@ func SetupRoutes(e *echo.Echo, db *gorm.DB) {
 	crewGroup.DELETE("/:id", crewHandler.DeleteCrew)
 	crewGroup.GET("/:id/flight-hours", crewHandler.GetCrewFlightHours)
 
-	api.GET("/crew/:id/assignments", crewAssignmentHandler.GetAssignedFlights,
+	api.GET("/crew/me/assignments",
+		crewAssignmentHandler.GetMyAssignedFlights,
 		middleware.JWTMiddleware,
-		middleware.RequireRole("admin", "crew", "maintenance"),
+		middleware.RequireRole("crew", "maintenance"),
 	)
 
 	api.PUT("/crew/me/update-profile",

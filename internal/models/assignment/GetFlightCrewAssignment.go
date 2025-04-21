@@ -6,12 +6,11 @@ import (
 )
 
 type GetFlightCrewAssignment struct {
-	FlightID     uint   `json:"-" gorm:"column:flight_id;primaryKey"`
-	CrewID       uint   `json:"-" gorm:"column:crew_id;primaryKey"`
-	RoleInFlight string `json:"role_in_flight"`
-
-	Flight flight.Flight `gorm:"foreignKey:FlightID;references:ID" json:"flight"`
-	Crew   crew.Crew     `gorm:"foreignKey:CrewID;references:ID" json:"crew"`
+	FlightID     uint          `json:"-" gorm:"column:flight_id;primaryKey"`
+	CrewID       uint          `json:"-" gorm:"column:crew_id;primaryKey"`
+	RoleInFlight string        `json:"role_in_flight"`
+	Flight       flight.Flight `json:"flight" gorm:"foreignKey:FlightID"`
+	Crew         crew.Crew     `json:"crew" gorm:"foreignKey:CrewID"`
 }
 
 func (GetFlightCrewAssignment) TableName() string {
