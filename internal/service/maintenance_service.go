@@ -15,27 +15,33 @@ func NewMaintenanceService(repo *repository.MaintenanceRepository) *MaintenanceS
 	return &MaintenanceService{repo}
 }
 
-func (s *MaintenanceService) GetAllLogs() ([]maintenance.MaintenanceLog, error) {
-	return s.repo.GetAllLogs()
+func (s *MaintenanceService) GetAllLogs(filters map[string]interface{}) ([]maintenance.MaintenanceLog, error) {
+	return s.repo.GetAllLogs(filters)
 }
 
 func (s *MaintenanceService) CreateLog(req *maintenance.CreateMaintenanceLogRequest) (*maintenance.MaintenanceLog, error) {
-	// ตรวจสอบว่า format ถูกต้อง
-	if _, err := time.Parse(time.RFC3339, req.DateOfMaintenance); err != nil {
-		return nil, errors.New("invalid datetime format: use RFC3339")
+	date, err := time.Parse(time.RFC3339, req.DateOfMaintenance)
+	if err != nil {
+		return nil, errors.New("invalid date format")
 	}
 
 	log := &maintenance.MaintenanceLog{
 		AircraftID:          req.AircraftID,
-		DateOfMaintenance:   req.DateOfMaintenance,
+		DateOfMaintenance:   date,
 		Details:             req.Details,
 		MaintenanceLocation: req.MaintenanceLocation,
+		Status:              req.Status,
+		AssignedTo:          req.AssignedTo,
 	}
 
-	if err := s.repo.CreateLog(log); err != nil {
+	if log.Status == "" {
+		log.Status = "Pending"
+	}
+
+	err = s.repo.CreateLog(log)
+	if err != nil {
 		return nil, err
 	}
-
 	return log, nil
 }
 
@@ -43,47 +49,32 @@ func (s *MaintenanceService) GetLogByID(id uint) (*maintenance.MaintenanceLog, e
 	return s.repo.GetLogByID(id)
 }
 
-func (s *MaintenanceService) UpdateLog(id uint, req *maintenance.UpdateMaintenanceLogRequest) error {
-	updates := make(map[string]interface{})
+func (s *MaintenanceService) UpdateLogByID(id uint, req *maintenance.UpdateMaintenanceLogRequest) error {
+	update := make(map[string]interface{})
 
-	if req.AircraftID != nil {
-		updates["aircraft_id"] = *req.AircraftID
-	}
 	if req.DateOfMaintenance != nil {
-		updates["date_of_maintenance"] = *req.DateOfMaintenance
+		parsed, err := time.Parse(time.RFC3339, *req.DateOfMaintenance)
+		if err != nil {
+			return errors.New("invalid date format")
+		}
+		update["date_of_maintenance"] = parsed
 	}
 	if req.Details != nil {
-		updates["details"] = *req.Details
+		update["details"] = *req.Details
 	}
 	if req.MaintenanceLocation != nil {
-		updates["maintenance_location"] = *req.MaintenanceLocation
+		update["maintenance_location"] = *req.MaintenanceLocation
+	}
+	if req.Status != nil {
+		update["status"] = *req.Status
+	}
+	if req.AssignedTo != nil {
+		update["assigned_to"] = *req.AssignedTo
 	}
 
-	if len(updates) == 0 {
-		return errors.New("no fields to update")
+	if len(update) == 0 {
+		return errors.New("no valid fields to update")
 	}
 
-	tx := s.repo.DB().Model(&maintenance.MaintenanceLog{}).
-		Where("log_id = ?", id).
-		Updates(updates)
-
-	if tx.Error != nil {
-		return tx.Error
-	}
-	if tx.RowsAffected == 0 {
-		return errors.New("maintenance log not found")
-	}
-
-	return nil
-}
-
-func (s *MaintenanceService) DeleteLogByID(id uint) error {
-	found, err := s.repo.DeleteLogByID(id)
-	if err != nil {
-		return err
-	}
-	if !found {
-		return errors.New("maintenance log not found")
-	}
-	return nil
+	return s.repo.UpdateLogByID(id, update)
 }

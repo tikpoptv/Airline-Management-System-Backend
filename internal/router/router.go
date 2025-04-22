@@ -150,7 +150,7 @@ func SetupRoutes(e *echo.Echo, db *gorm.DB) {
 	maintenanceGroup.POST("", maintenanceHandler.CreateMaintenanceLog)
 	maintenanceGroup.GET("/:id", maintenanceHandler.GetMaintenanceLogDetail)
 	maintenanceGroup.PUT("/:id", maintenanceHandler.UpdateMaintenanceLog)
-	maintenanceGroup.DELETE("/:id", maintenanceHandler.DeleteMaintenanceLog)
+	// maintenanceGroup.DELETE("/:id", maintenanceHandler.DeleteMaintenanceLog)
 
 	// Payment Routes (admin only)
 	paymentGroup := api.Group("/payments")
