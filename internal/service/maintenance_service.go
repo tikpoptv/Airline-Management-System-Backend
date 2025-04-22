@@ -48,3 +48,33 @@ func (s *MaintenanceService) CreateLog(req *maintenance.CreateMaintenanceLogRequ
 func (s *MaintenanceService) GetLogByID(id uint) (*maintenance.MaintenanceLog, error) {
 	return s.repo.GetLogByID(id)
 }
+
+func (s *MaintenanceService) UpdateLogByID(id uint, req *maintenance.UpdateMaintenanceLogRequest) error {
+	update := make(map[string]interface{})
+
+	if req.DateOfMaintenance != nil {
+		parsed, err := time.Parse(time.RFC3339, *req.DateOfMaintenance)
+		if err != nil {
+			return errors.New("invalid date format")
+		}
+		update["date_of_maintenance"] = parsed
+	}
+	if req.Details != nil {
+		update["details"] = *req.Details
+	}
+	if req.MaintenanceLocation != nil {
+		update["maintenance_location"] = *req.MaintenanceLocation
+	}
+	if req.Status != nil {
+		update["status"] = *req.Status
+	}
+	if req.AssignedTo != nil {
+		update["assigned_to"] = *req.AssignedTo
+	}
+
+	if len(update) == 0 {
+		return errors.New("no valid fields to update")
+	}
+
+	return s.repo.UpdateLogByID(id, update)
+}

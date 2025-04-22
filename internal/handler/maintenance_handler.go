@@ -3,10 +3,12 @@ package handler
 import (
 	"airline-management-system/internal/models/maintenance"
 	"airline-management-system/internal/service"
+	"errors"
 	"net/http"
 	"strconv"
 
 	"github.com/labstack/echo/v4"
+	"gorm.io/gorm"
 )
 
 type MaintenanceHandler struct {
@@ -74,4 +76,26 @@ func (h *MaintenanceHandler) GetMaintenanceLogDetail(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, log)
+}
+
+func (h *MaintenanceHandler) UpdateMaintenanceLog(c echo.Context) error {
+	idParam := c.Param("id")
+	id, err := strconv.Atoi(idParam)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": "invalid maintenance log ID"})
+	}
+
+	var req maintenance.UpdateMaintenanceLogRequest
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": "invalid request format"})
+	}
+
+	if err := h.maintenanceService.UpdateLogByID(uint(id), &req); err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return c.JSON(http.StatusNotFound, echo.Map{"error": "maintenance log not found"})
+		}
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": err.Error()})
+	}
+
+	return c.JSON(http.StatusOK, echo.Map{"message": "maintenance log updated successfully"})
 }

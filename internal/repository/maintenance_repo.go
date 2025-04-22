@@ -74,3 +74,17 @@ func (r *MaintenanceRepository) DeleteLogByID(id uint) (bool, error) {
 	}
 	return tx.RowsAffected > 0, nil
 }
+
+func (r *MaintenanceRepository) UpdateLogByID(id uint, data map[string]interface{}) error {
+	tx := r.db.Model(&maintenance.MaintenanceLog{}).
+		Where("log_id = ?", id).
+		Updates(data)
+
+	if tx.Error != nil {
+		return tx.Error
+	}
+	if tx.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+	return nil
+}
