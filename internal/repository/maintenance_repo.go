@@ -2,6 +2,7 @@ package repository
 
 import (
 	"airline-management-system/internal/models/maintenance"
+	"errors"
 
 	"gorm.io/gorm"
 )
@@ -42,8 +43,15 @@ func (r *MaintenanceRepository) CreateLog(log *maintenance.MaintenanceLog) error
 
 func (r *MaintenanceRepository) GetLogByID(id uint) (*maintenance.MaintenanceLog, error) {
 	var log maintenance.MaintenanceLog
-	err := r.db.Preload("Aircraft").First(&log, "log_id = ?", id).Error
+	err := r.db.
+		Preload("Aircraft").
+		Preload("AssignedUser").
+		First(&log, "log_id = ?", id).Error
+
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
 		return nil, err
 	}
 	return &log, nil

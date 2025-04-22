@@ -58,59 +58,20 @@ func (h *MaintenanceHandler) CreateMaintenanceLog(c echo.Context) error {
 	return c.JSON(http.StatusCreated, newLog)
 }
 
-// func (h *MaintenanceHandler) GetMaintenanceLogDetail(c echo.Context) error {
-// 	idParam := c.Param("id")
-// 	idUint, err := strconv.ParseUint(idParam, 10, 64)
-// 	if err != nil {
-// 		return c.JSON(http.StatusBadRequest, echo.Map{"error": "invalid log ID"})
-// 	}
+func (h *MaintenanceHandler) GetMaintenanceLogDetail(c echo.Context) error {
+	idParam := c.Param("id")
+	id, err := strconv.Atoi(idParam)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": "invalid maintenance log ID"})
+	}
 
-// 	log, err := h.maintenanceService.GetLogByID(uint(idUint))
-// 	if err != nil {
-// 		return c.JSON(http.StatusNotFound, echo.Map{"error": "maintenance log not found"})
-// 	}
+	log, err := h.maintenanceService.GetLogByID(uint(id))
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "failed to retrieve log"})
+	}
+	if log == nil {
+		return c.JSON(http.StatusNotFound, echo.Map{"error": "maintenance log not found"})
+	}
 
-// 	return c.JSON(http.StatusOK, log)
-// }
-
-// func (h *MaintenanceHandler) UpdateMaintenanceLog(c echo.Context) error {
-// 	idParam := c.Param("id")
-// 	idUint, err := strconv.ParseUint(idParam, 10, 64)
-// 	if err != nil {
-// 		return c.JSON(http.StatusBadRequest, echo.Map{"error": "invalid log ID"})
-// 	}
-
-// 	var req maintenance.UpdateMaintenanceLogRequest
-// 	if err := c.Bind(&req); err != nil {
-// 		return c.JSON(http.StatusBadRequest, echo.Map{"error": "invalid request"})
-// 	}
-
-// 	err = h.maintenanceService.UpdateLog(uint(idUint), &req)
-// 	if err != nil {
-// 		return c.JSON(http.StatusBadRequest, echo.Map{"error": err.Error()})
-// 	}
-
-// 	return c.JSON(http.StatusOK, echo.Map{
-// 		"message": "maintenance log updated successfully",
-// 	})
-// }
-
-// func (h *MaintenanceHandler) DeleteMaintenanceLog(c echo.Context) error {
-// 	idParam := c.Param("id")
-// 	idUint, err := strconv.ParseUint(idParam, 10, 64)
-// 	if err != nil {
-// 		return c.JSON(http.StatusBadRequest, echo.Map{"error": "invalid log ID"})
-// 	}
-
-// 	err = h.maintenanceService.DeleteLogByID(uint(idUint))
-// 	if err != nil {
-// 		if err.Error() == "maintenance log not found" {
-// 			return c.JSON(http.StatusNotFound, echo.Map{"error": err.Error()})
-// 		}
-// 		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "failed to delete maintenance log"})
-// 	}
-
-// 	return c.JSON(http.StatusOK, echo.Map{
-// 		"message": "maintenance log deleted successfully",
-// 	})
-// }
+	return c.JSON(http.StatusOK, log)
+}
