@@ -10,8 +10,6 @@
 logs/
 *.log
 
-# Go modules and dependencies
-go.sum
 vendor/
 
 # IDE & Editor specific files
