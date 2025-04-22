@@ -168,5 +168,6 @@ func SetupRoutes(e *echo.Echo, db *gorm.DB) {
 	taskGroup.Use(middleware.JWTMiddleware)
 	taskGroup.Use(middleware.RequireRole("maintenance", "admin"))
 	taskGroup.GET("/me", taskHandler.GetMyTasks)
+	taskGroup.PUT("/:id/status", taskHandler.UpdateTaskStatus)
 
 }

@@ -28,3 +28,25 @@ func (r *MaintenanceTaskRepository) GetTasksByUser(userID uint) ([]maintenance.M
 	}
 	return tasks, nil
 }
+
+func (r *MaintenanceTaskRepository) UpdateTaskStatus(logID uint, update map[string]interface{}) error {
+	tx := r.db.Model(&maintenance.MaintenanceLog{}).
+		Where("log_id = ?", logID).
+		Updates(update)
+
+	if tx.Error != nil {
+		return tx.Error
+	}
+	if tx.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+	return nil
+}
+
+func (r *MaintenanceTaskRepository) IsTaskOwnedByUser(logID uint, userID uint) (bool, error) {
+	var count int64
+	err := r.db.Model(&maintenance.MaintenanceLog{}).
+		Where("log_id = ? AND assigned_to = ?", logID, userID).
+		Count(&count).Error
+	return count > 0, err
+}
