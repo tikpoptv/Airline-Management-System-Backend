@@ -2,11 +2,14 @@ package handler
 
 import (
 	"airline-management-system/internal/service"
+	"errors"
 	"net/http"
 	"strconv"
 
 	"github.com/labstack/echo/v4"
+	"gorm.io/gorm"
 
+	"airline-management-system/internal/models/crew"
 	crewModel "airline-management-system/internal/models/crew"
 )
 
@@ -109,4 +112,33 @@ func (h *CrewHandler) GetCrewFlightHours(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, result)
+}
+
+func (h *CrewHandler) UpdateMyCrewProfile(c echo.Context) error {
+	// ดึง user_id จาก JWT context
+	userIDRaw := c.Get("user_id")
+	userIDFloat, ok := userIDRaw.(float64)
+	if !ok {
+		return c.JSON(http.StatusUnauthorized, echo.Map{"error": "unauthorized"})
+	}
+	userID := uint(userIDFloat)
+
+	// รับข้อมูลจาก body
+	var req crew.UpdateCrewProfileRequest
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": "invalid request data"})
+	}
+	if err := c.Validate(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": err.Error()})
+	}
+
+	// เรียก service เพื่ออัปเดต
+	if err := h.crewService.UpdateCrewProfileFromUser(userID, &req); err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return c.JSON(http.StatusNotFound, echo.Map{"error": "crew not found"})
+		}
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "failed to update profile"})
+	}
+
+	return c.JSON(http.StatusOK, echo.Map{"message": "crew profile updated successfully"})
 }

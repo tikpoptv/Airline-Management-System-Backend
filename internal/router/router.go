@@ -56,6 +56,16 @@ func SetupRoutes(e *echo.Echo, db *gorm.DB) {
 	paymentService := service.NewPaymentService(paymentRepo)
 	paymentHandler := handler.NewPaymentHandler(paymentService)
 
+	// Crew Assignment
+	assignmentRepo := repository.NewFlightAssignmentRepository(db)
+	crewAssignmentService := service.NewCrewAssignmentService(crewRepo, assignmentRepo)
+	crewAssignmentHandler := handler.NewCrewAssignmentHandler(crewAssignmentService)
+
+	// Maintenance Task
+	taskRepo := repository.NewMaintenanceTaskRepository(db)
+	taskService := service.NewMaintenanceTaskService(taskRepo)
+	taskHandler := handler.NewMaintenanceTaskHandler(taskService)
+
 	// Main API group
 	api := e.Group("/api")
 	api.POST("/auth/register", authHandler.RegisterPassenger)
@@ -124,6 +134,18 @@ func SetupRoutes(e *echo.Echo, db *gorm.DB) {
 	crewGroup.DELETE("/:id", crewHandler.DeleteCrew)
 	crewGroup.GET("/:id/flight-hours", crewHandler.GetCrewFlightHours)
 
+	api.GET("/crew/me/assignments",
+		crewAssignmentHandler.GetMyAssignedFlights,
+		middleware.JWTMiddleware,
+		middleware.RequireRole("crew", "maintenance"),
+	)
+
+	api.PUT("/crew/me/update-profile",
+		crewHandler.UpdateMyCrewProfile,
+		middleware.JWTMiddleware,
+		middleware.RequireRole("crew"),
+	)
+
 	// Maintenance Routes (admin only)
 	maintenanceGroup := api.Group("/maintenance-logs")
 	maintenanceGroup.Use(middleware.JWTMiddleware)
@@ -133,7 +155,7 @@ func SetupRoutes(e *echo.Echo, db *gorm.DB) {
 	maintenanceGroup.POST("", maintenanceHandler.CreateMaintenanceLog)
 	maintenanceGroup.GET("/:id", maintenanceHandler.GetMaintenanceLogDetail)
 	maintenanceGroup.PUT("/:id", maintenanceHandler.UpdateMaintenanceLog)
-	maintenanceGroup.DELETE("/:id", maintenanceHandler.DeleteMaintenanceLog)
+	// maintenanceGroup.DELETE("/:id", maintenanceHandler.DeleteMaintenanceLog)
 
 	// Payment Routes (admin only)
 	paymentGroup := api.Group("/payments")
@@ -141,5 +163,11 @@ func SetupRoutes(e *echo.Echo, db *gorm.DB) {
 	paymentGroup.Use(middleware.RequireRole("admin", "finance", "maintenance"))
 	paymentGroup.GET("", paymentHandler.ListPayments)
 	paymentGroup.GET("/:id", paymentHandler.GetPaymentDetail)
+
+	taskGroup := api.Group("/maintenance-tasks")
+	taskGroup.Use(middleware.JWTMiddleware)
+	taskGroup.Use(middleware.RequireRole("maintenance", "admin"))
+	taskGroup.GET("/me", taskHandler.GetMyTasks)
+	taskGroup.PUT("/:id/status", taskHandler.UpdateTaskStatus)
 
 }

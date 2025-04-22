@@ -58,3 +58,34 @@ func (r *CrewRepository) GetCrewFlightHours(id uint) (*crew.CrewFlightHoursRespo
 	}
 	return &result, nil
 }
+
+func (r *CrewRepository) GetCrewIDByUserID(userID uint) (uint, error) {
+	var c crew.Crew
+	err := r.db.Select("crew_id").Where("user_id = ?", userID).First(&c).Error
+	if err != nil {
+		return 0, err
+	}
+	return c.ID, nil
+}
+
+func (r *CrewRepository) UpdateCrewProfileByID(id uint, data map[string]interface{}) error {
+	tx := r.db.Model(&crew.Crew{}).Where("crew_id = ?", id).Updates(data)
+	if tx.Error != nil {
+		return tx.Error
+	}
+	if tx.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+	return nil
+}
+
+func (r *CrewRepository) IsPassportNumberTakenExceptID(passport string, excludeID uint) (bool, error) {
+	var count int64
+	err := r.db.Model(&crew.Crew{}).
+		Where("passport_number = ? AND crew_id != ?", passport, excludeID).
+		Count(&count).Error
+	if err != nil {
+		return false, err
+	}
+	return count > 0, nil
+}
