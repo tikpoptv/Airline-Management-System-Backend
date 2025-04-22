@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"airline-management-system/internal/models/maintenance"
 	"airline-management-system/internal/service"
 	"net/http"
 	"strconv"
@@ -40,26 +41,22 @@ func (h *MaintenanceHandler) ListMaintenanceLogs(c echo.Context) error {
 	return c.JSON(http.StatusOK, logs)
 }
 
-// func (h *MaintenanceHandler) CreateMaintenanceLog(c echo.Context) error {
-// 	var req maintenance.CreateMaintenanceLogRequest
+func (h *MaintenanceHandler) CreateMaintenanceLog(c echo.Context) error {
+	var req maintenance.CreateMaintenanceLogRequest
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": "invalid request format"})
+	}
+	if err := c.Validate(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": err.Error()})
+	}
 
-// 	if err := c.Bind(&req); err != nil {
-// 		return c.JSON(http.StatusBadRequest, echo.Map{"error": "invalid request"})
-// 	}
-// 	if err := c.Validate(&req); err != nil {
-// 		return c.JSON(http.StatusBadRequest, echo.Map{"error": err.Error()})
-// 	}
+	newLog, err := h.maintenanceService.CreateLog(&req)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "failed to create maintenance log"})
+	}
 
-// 	// // newLog, err := h.maintenanceService.CreateLog(&req)
-// 	// if err != nil {
-// 	// 	return c.JSON(http.StatusInternalServerError, echo.Map{"error": "failed to create maintenance log"})
-// 	// }
-
-// 	return c.JSON(http.StatusCreated, echo.Map{
-// 		"message": "maintenance log created successfully",
-// 		// "log_id":  newLog.LogID,
-// 	})
-// }
+	return c.JSON(http.StatusCreated, newLog)
+}
 
 // func (h *MaintenanceHandler) GetMaintenanceLogDetail(c echo.Context) error {
 // 	idParam := c.Param("id")
