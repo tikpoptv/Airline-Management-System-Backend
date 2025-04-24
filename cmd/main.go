@@ -5,6 +5,8 @@ import (
 	customMiddleware "airline-management-system/internal/middleware"
 	"airline-management-system/internal/router"
 	"log"
+	"os"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -27,6 +29,12 @@ func main() {
 
 	// Setup routes
 	router.SetupRoutes(e, db)
+
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins: strings.Split(os.Getenv("CORS_ALLOWED_ORIGINS"), ","),
+		AllowMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders: []string{"Authorization", "Content-Type"},
+	}))
 
 	port := config.GetEnv("PORT")
 	if port == "" {
