@@ -167,3 +167,18 @@ func (h *FlightHandler) GetFlightCrewList(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, crewList)
 }
+
+func (h *FlightHandler) GetFlightsByAircraftID(c echo.Context) error {
+	idParam := c.Param("aircraft_id")
+	id, err := strconv.Atoi(idParam)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": "invalid aircraft ID"})
+	}
+
+	flights, err := h.flightService.GetFlightsByAircraftID(uint(id))
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "failed to retrieve flights"})
+	}
+
+	return c.JSON(http.StatusOK, flights)
+}

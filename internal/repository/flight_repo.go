@@ -81,3 +81,19 @@ func (r *FlightRepository) DeleteFlight(id uint) error {
 	}
 	return result.Error
 }
+
+func (r *FlightRepository) GetFlightsByAircraftID(aircraftID uint) ([]flight.Flight, error) {
+	var flights []flight.Flight
+	err := r.db.
+		Preload("Aircraft").
+		Preload("Route").
+		Preload("Route.FromAirport").
+		Preload("Route.ToAirport").
+		Where("aircraft_id = ?", aircraftID).
+		Order("departure_time DESC").
+		Find(&flights).Error
+	if err != nil {
+		return nil, err
+	}
+	return flights, nil
+}

@@ -89,6 +89,7 @@ func SetupRoutes(e *echo.Echo, db *gorm.DB) {
 	aircraftGroup.GET("/:id", aircraftHandler.GetAircraftDetail)
 	aircraftGroup.PUT("/:id", aircraftHandler.UpdateAircraft)
 	aircraftGroup.DELETE("/:id", aircraftHandler.DeleteAircraft)
+	aircraftGroup.GET("/:aircraft_id/flights", flightHandler.GetFlightsByAircraftID)
 
 	// Flight Routes (admin only)
 	flightGroup := api.Group("/flights")

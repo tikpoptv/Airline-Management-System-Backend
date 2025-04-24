@@ -130,3 +130,7 @@ func (s *FlightService) UpdateFlightDetails(id uint, req *flight.UpdateFlightDet
 func (s *FlightService) DeleteFlight(id uint) error {
 	return s.repo.DeleteFlight(id)
 }
+
+func (s *FlightService) GetFlightsByAircraftID(aircraftID uint) ([]flight.Flight, error) {
+	return s.repo.GetFlightsByAircraftID(aircraftID)
+}
