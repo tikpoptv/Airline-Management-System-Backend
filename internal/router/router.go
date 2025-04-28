@@ -1,174 +1,93 @@
 package router
 
 import (
-	"airline-management-system/internal/handler"
+	"airline-management-system/internal/container"
 	"airline-management-system/internal/middleware"
-	"airline-management-system/internal/repository"
-	"airline-management-system/internal/service"
 
 	"github.com/labstack/echo/v4"
-	"gorm.io/gorm"
 )
 
-func SetupRoutes(e *echo.Echo, db *gorm.DB) {
-	userRepo := repository.NewUserRepository(db)
-	userService := service.NewUserService(userRepo)
-	authHandler := handler.NewAuthHandler(userService)
-	adminUserHandler := handler.NewAdminUserHandler(userService)
-	userHandler := handler.NewUserHandler(userService)
-
-	// Aircraft Handler
-	aircraftRepo := repository.NewAircraftRepository(db)
-	aircraftService := service.NewAircraftService(aircraftRepo)
-	aircraftHandler := handler.NewAircraftHandler(aircraftService)
-
-	// Flight
-	flightRepo := repository.NewFlightRepository(db)
-	flightService := service.NewFlightService(flightRepo)
-
-	flightAssignmentRepo := repository.NewFlightAssignmentRepository(db)
-	flightAssignmentService := service.NewFlightAssignmentService(flightAssignmentRepo)
-
-	flightHandler := handler.NewFlightHandler(flightService, flightAssignmentService)
-
-	// Route
-	routeRepo := repository.NewRouteRepository(db)
-	routeService := service.NewRouteService(routeRepo)
-	routeHandler := handler.NewRouteHandler(routeService)
-
-	// Airport
-	airportRepo := repository.NewAirportRepository(db)
-	airportService := service.NewAirportService(airportRepo)
-	airportHandler := handler.NewAirportHandler(airportService)
-
-	// Crew
-	crewRepo := repository.NewCrewRepository(db)
-	crewService := service.NewCrewService(crewRepo)
-	crewHandler := handler.NewCrewHandler(crewService)
-
-	// Maintenance
-	maintenanceRepo := repository.NewMaintenanceRepository(db)
-	maintenanceService := service.NewMaintenanceService(maintenanceRepo)
-	maintenanceHandler := handler.NewMaintenanceHandler(maintenanceService)
-
-	// Payment
-	paymentRepo := repository.NewPaymentRepository(db)
-	paymentService := service.NewPaymentService(paymentRepo)
-	paymentHandler := handler.NewPaymentHandler(paymentService)
-
-	// Crew Assignment
-	assignmentRepo := repository.NewFlightAssignmentRepository(db)
-	crewAssignmentService := service.NewCrewAssignmentService(crewRepo, assignmentRepo)
-	crewAssignmentHandler := handler.NewCrewAssignmentHandler(crewAssignmentService)
-
-	// Maintenance Task
-	taskRepo := repository.NewMaintenanceTaskRepository(db)
-	taskService := service.NewMaintenanceTaskService(taskRepo)
-	taskHandler := handler.NewMaintenanceTaskHandler(taskService)
-
-	// Main API group
+func SetupRoutes(e *echo.Echo, c *container.Container) {
 	api := e.Group("/api")
-	api.POST("/auth/register", authHandler.RegisterPassenger)
-	api.POST("/auth/login", authHandler.Login)
-	api.GET("/users/me", userHandler.GetMyProfile, middleware.JWTMiddleware)
 
-	admin := api.Group("/users")
-	admin.Use(middleware.JWTMiddleware)
-	admin.Use(middleware.RequireRole("admin"))
+	api.POST("/auth/register", c.AuthHandler.RegisterPassenger)
+	api.POST("/auth/login", c.AuthHandler.Login)
+	api.GET("/users/me", c.UserHandler.GetMyProfile, middleware.JWTMiddleware)
 
-	admin.POST("", adminUserHandler.CreateUserByAdmin)
-	admin.GET("/:id", userHandler.GetUserProfile)
+	admin := api.Group("/users", middleware.JWTMiddleware, middleware.RequireRole("admin"))
+	admin.POST("", c.AdminUserHandler.CreateUserByAdmin)
+	admin.GET("/:id", c.UserHandler.GetUserProfile)
 
 	// Aircraft Routes (admin only)
-	aircraftGroup := api.Group("/aircrafts")
-	aircraftGroup.Use(middleware.JWTMiddleware)
-	aircraftGroup.Use(middleware.RequireRole("admin"))
-
-	aircraftGroup.GET("", aircraftHandler.ListAircraft)
-	aircraftGroup.POST("", aircraftHandler.CreateAircraft)
-	aircraftGroup.GET("/:id", aircraftHandler.GetAircraftDetail)
-	aircraftGroup.PUT("/:id", aircraftHandler.UpdateAircraft)
-	aircraftGroup.DELETE("/:id", aircraftHandler.DeleteAircraft)
-	aircraftGroup.GET("/:aircraft_id/flights", flightHandler.GetFlightsByAircraftID)
+	aircraftGroup := api.Group("/aircrafts", middleware.JWTMiddleware, middleware.RequireRole("admin"))
+	aircraftGroup.GET("", c.AircraftHandler.ListAircraft)
+	aircraftGroup.POST("", c.AircraftHandler.CreateAircraft)
+	aircraftGroup.GET("/:id", c.AircraftHandler.GetAircraftDetail)
+	aircraftGroup.PUT("/:id", c.AircraftHandler.UpdateAircraft)
+	aircraftGroup.DELETE("/:id", c.AircraftHandler.DeleteAircraft)
+	aircraftGroup.GET("/:aircraft_id/flights", c.FlightHandler.GetFlightsByAircraftID)
 
 	// Flight Routes (admin only)
-	flightGroup := api.Group("/flights")
-	flightGroup.Use(middleware.JWTMiddleware)
-	flightGroup.Use(middleware.RequireRole("admin"))
-
-	flightGroup.GET("", flightHandler.ListFlights)
-	flightGroup.POST("", flightHandler.CreateFlight)
-	flightGroup.GET("/:id", flightHandler.GetFlightDetail)
-	flightGroup.PUT("/:id", flightHandler.UpdateFlight)
-	flightGroup.PUT("/:id/details", flightHandler.UpdateFlightDetails)
-	flightGroup.DELETE("/:id", flightHandler.DeleteFlight)
-
-	// Flight Assignment Routes (admin only)
-	flightGroup.POST("/:flight_id/assign-crew", flightHandler.AssignCrewToFlight)
-	flightGroup.GET("/:flight_id/crew", flightHandler.GetFlightCrewList)
+	flightGroup := api.Group("/flights", middleware.JWTMiddleware, middleware.RequireRole("admin"))
+	flightGroup.GET("", c.FlightHandler.ListFlights)
+	flightGroup.POST("", c.FlightHandler.CreateFlight)
+	flightGroup.GET("/:id", c.FlightHandler.GetFlightDetail)
+	flightGroup.PUT("/:id", c.FlightHandler.UpdateFlight)
+	flightGroup.PUT("/:id/details", c.FlightHandler.UpdateFlightDetails)
+	flightGroup.DELETE("/:id", c.FlightHandler.DeleteFlight)
+	flightGroup.POST("/:flight_id/assign-crew", c.FlightHandler.AssignCrewToFlight)
+	flightGroup.GET("/:flight_id/crew", c.FlightHandler.GetFlightCrewList)
 
 	// Route Routes (admin only)
-	routeGroup := api.Group("/routes")
-	routeGroup.Use(middleware.JWTMiddleware)
-	routeGroup.Use(middleware.RequireRole("admin"))
+	routeGroup := api.Group("/routes", middleware.JWTMiddleware, middleware.RequireRole("admin"))
+	routeGroup.GET("", c.RouteHandler.ListRoutes)
+	routeGroup.POST("", c.RouteHandler.CreateRoute)
 
-	routeGroup.GET("", routeHandler.ListRoutes)
-	routeGroup.POST("", routeHandler.CreateRoute)
-
-	// Route Details (admin only)
-	airportGroup := api.Group("/airports")
-	airportGroup.Use(middleware.JWTMiddleware)
-	airportGroup.Use(middleware.RequireRole("admin"))
-
-	airportGroup.GET("", airportHandler.ListAirports)
-	airportGroup.POST("", airportHandler.CreateAirport)
+	// Airport Routes (admin only)
+	airportGroup := api.Group("/airports", middleware.JWTMiddleware, middleware.RequireRole("admin"))
+	airportGroup.GET("", c.AirportHandler.ListAirports)
+	airportGroup.POST("", c.AirportHandler.CreateAirport)
 
 	// Crew Routes (admin only)
-	crewGroup := api.Group("/crew")
-	crewGroup.Use(middleware.JWTMiddleware)
-	crewGroup.Use(middleware.RequireRole("admin"))
-
-	crewGroup.GET("", crewHandler.ListCrew)
-	crewGroup.POST("", crewHandler.CreateCrew)
-	crewGroup.GET("/:id", crewHandler.GetCrewDetail)
-	crewGroup.PUT("/:id", crewHandler.UpdateCrew)
-	crewGroup.DELETE("/:id", crewHandler.DeleteCrew)
-	crewGroup.GET("/:id/flight-hours", crewHandler.GetCrewFlightHours)
+	crewGroup := api.Group("/crew", middleware.JWTMiddleware, middleware.RequireRole("admin"))
+	crewGroup.GET("", c.CrewHandler.ListCrew)
+	crewGroup.POST("", c.CrewHandler.CreateCrew)
+	crewGroup.GET("/:id", c.CrewHandler.GetCrewDetail)
+	crewGroup.PUT("/:id", c.CrewHandler.UpdateCrew)
+	crewGroup.DELETE("/:id", c.CrewHandler.DeleteCrew)
+	crewGroup.GET("/:id/flight-hours", c.CrewHandler.GetCrewFlightHours)
 
 	api.GET("/crew/me/assignments",
-		crewAssignmentHandler.GetMyAssignedFlights,
+		c.CrewAssignmentHandler.GetMyAssignedFlights,
 		middleware.JWTMiddleware,
 		middleware.RequireRole("crew", "maintenance"),
 	)
 
 	api.PUT("/crew/me/update-profile",
-		crewHandler.UpdateMyCrewProfile,
+		c.CrewHandler.UpdateMyCrewProfile,
 		middleware.JWTMiddleware,
 		middleware.RequireRole("crew"),
 	)
 
-	// Maintenance Routes (admin only)
-	maintenanceGroup := api.Group("/maintenance-logs")
-	maintenanceGroup.Use(middleware.JWTMiddleware)
-	maintenanceGroup.Use(middleware.RequireRole("admin", "maintenance"))
+	// Maintenance Routes (admin, maintenance only)
+	maintenanceGroup := api.Group("/maintenance-logs", middleware.JWTMiddleware, middleware.RequireRole("admin", "maintenance"))
+	maintenanceGroup.GET("", c.MaintenanceHandler.ListMaintenanceLogs)
+	maintenanceGroup.POST("", c.MaintenanceHandler.CreateMaintenanceLog)
+	maintenanceGroup.GET("/:id", c.MaintenanceHandler.GetMaintenanceLogDetail)
+	maintenanceGroup.PUT("/:id", c.MaintenanceHandler.UpdateMaintenanceLog)
 
-	maintenanceGroup.GET("", maintenanceHandler.ListMaintenanceLogs)
-	maintenanceGroup.POST("", maintenanceHandler.CreateMaintenanceLog)
-	maintenanceGroup.GET("/:id", maintenanceHandler.GetMaintenanceLogDetail)
-	maintenanceGroup.PUT("/:id", maintenanceHandler.UpdateMaintenanceLog)
-	// maintenanceGroup.DELETE("/:id", maintenanceHandler.DeleteMaintenanceLog)
+	// Maintenance Task
+	taskGroup := api.Group("/maintenance-tasks", middleware.JWTMiddleware, middleware.RequireRole("maintenance", "admin"))
+	taskGroup.GET("/me", c.MaintenanceTaskHandler.GetMyTasks)
+	taskGroup.PUT("/:id/status", c.MaintenanceTaskHandler.UpdateTaskStatus)
 
-	// Payment Routes (admin only)
-	paymentGroup := api.Group("/payments")
-	paymentGroup.Use(middleware.JWTMiddleware)
-	paymentGroup.Use(middleware.RequireRole("admin", "finance", "maintenance"))
-	paymentGroup.GET("", paymentHandler.ListPayments)
-	paymentGroup.GET("/:id", paymentHandler.GetPaymentDetail)
+	// Payment Routes (admin, finance, maintenance)
+	paymentGroup := api.Group("/payments", middleware.JWTMiddleware, middleware.RequireRole("admin", "finance", "maintenance"))
+	paymentGroup.GET("", c.PaymentHandler.ListPayments)
+	paymentGroup.GET("/:id", c.PaymentHandler.GetPaymentDetail)
 
-	taskGroup := api.Group("/maintenance-tasks")
-	taskGroup.Use(middleware.JWTMiddleware)
-	taskGroup.Use(middleware.RequireRole("maintenance", "admin"))
-	taskGroup.GET("/me", taskHandler.GetMyTasks)
-	taskGroup.PUT("/:id/status", taskHandler.UpdateTaskStatus)
+	// Aircraft Model Routes (admin only)
+	modelGroup := api.Group("/models", middleware.JWTMiddleware, middleware.RequireRole("admin"))
 
+	modelGroup.GET("/aircraft", c.AircraftModelHandler.GetAircraftModels)
 }
