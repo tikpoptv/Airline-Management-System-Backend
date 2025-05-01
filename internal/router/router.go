@@ -90,4 +90,5 @@ func SetupRoutes(e *echo.Echo, c *container.Container) {
 	modelGroup := api.Group("/models", middleware.JWTMiddleware, middleware.RequireRole("admin"))
 
 	modelGroup.GET("/aircraft", c.AircraftModelHandler.GetAircraftModels)
+	modelGroup.GET("/airline", c.AirlineOwnerHandler.GetAirlineOwners)
 }
