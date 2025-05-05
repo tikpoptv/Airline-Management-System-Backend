@@ -5,4 +5,5 @@ type CreateRouteRequest struct {
 	ToAirportID       uint    `json:"to_airport_id" validate:"required,nefield=FromAirportID"`
 	Distance          float64 `json:"distance" validate:"required,gt=0"`
 	EstimatedDuration string  `json:"estimated_duration" validate:"required"`
+	Status            string  `json:"status" validate:"required,oneof=active inactive"`
 }

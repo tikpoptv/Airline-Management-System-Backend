@@ -28,6 +28,7 @@ func (s *RouteService) CreateRoute(req *route.CreateRouteRequest) (*route.RouteB
 		ToAirportID:       req.ToAirportID,
 		Distance:          req.Distance,
 		EstimatedDuration: req.EstimatedDuration,
+		Status:            req.Status,
 	}
 
 	if err := s.repo.CreateRoute(newRoute); err != nil {
@@ -40,5 +41,6 @@ func (s *RouteService) CreateRoute(req *route.CreateRouteRequest) (*route.RouteB
 		ToAirportID:       newRoute.ToAirportID,
 		Distance:          newRoute.Distance,
 		EstimatedDuration: newRoute.EstimatedDuration,
+		Status:            newRoute.Status,
 	}, nil
 }

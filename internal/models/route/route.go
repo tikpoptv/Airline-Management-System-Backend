@@ -10,6 +10,7 @@ type Route struct {
 	ToAirport         airport.AirportPreload `gorm:"foreignKey:ToAirportID;references:ID" json:"to_airport"`
 	Distance          float64                `json:"distance"`
 	EstimatedDuration string                 `gorm:"type:interval" json:"estimated_duration"`
+	Status            string                 `json:"status"`
 }
 
 func (Route) TableName() string {
@@ -22,4 +23,5 @@ type RouteBasicResponse struct {
 	ToAirportID       uint    `json:"to_airport_id"`
 	Distance          float64 `json:"distance"`
 	EstimatedDuration string  `json:"estimated_duration"`
+	Status            string  `json:"status"`
 }
