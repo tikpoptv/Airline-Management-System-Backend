@@ -6,4 +6,5 @@ type CrewAssignmentResponse struct {
 	PassportNumber string `json:"passport_number"`
 	Role           string `json:"role"`
 	RoleInFlight   string `json:"role_in_flight"`
+	Status         string `json:"status"`
 }

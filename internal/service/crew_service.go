@@ -29,6 +29,7 @@ func (s *CrewService) CreateCrew(req *crew.CreateCrewRequest) (*crew.Crew, error
 		PassportExpiryDate: req.PassportExpiryDate,
 		FlightHours:        req.FlightHours,
 		UserID:             req.UserID,
+		Status:             req.Status,
 	}
 
 	if err := s.repo.CreateCrew(newCrew); err != nil {
@@ -69,6 +70,13 @@ func (s *CrewService) UpdateCrew(id uint, req *crew.UpdateCrewRequest) error {
 	}
 	if req.UserID != nil {
 		updates["user_id"] = *req.UserID
+	}
+	if req.Status != nil {
+		status := strings.TrimSpace(*req.Status)
+		if status != "active" && status != "inactive" && status != "on_leave" && status != "suspended" && status != "retired" {
+			return errors.New("invalid status")
+		}
+		updates["status"] = status
 	}
 
 	if len(updates) == 0 {

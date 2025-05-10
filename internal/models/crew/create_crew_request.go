@@ -8,4 +8,5 @@ type CreateCrewRequest struct {
 	PassportExpiryDate string  `json:"passport_expiry_date" validate:"required"`
 	FlightHours        float64 `json:"flight_hours"`
 	UserID             *uint   `json:"user_id"` // optional
+	Status             string  `json:"status" validate:"required,oneof=active inactive on_leave suspended retired"`
 }

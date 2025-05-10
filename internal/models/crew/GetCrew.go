@@ -10,6 +10,7 @@ type GetCrew struct {
 	LicenseExpiryDate  string  `json:"license_expiry_date"`
 	PassportExpiryDate string  `json:"passport_expiry_date"`
 	FlightHours        float64 `json:"flight_hours"`
+	Status             string  `json:"status"`
 
 	UserID *uint     `gorm:"column:user_id" json:"-"`
 	User   user.User `gorm:"foreignKey:UserID;references:ID" json:"user"`

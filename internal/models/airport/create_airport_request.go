@@ -8,6 +8,7 @@ type CreateAirportRequest struct {
 	Latitude  float64 `json:"latitude"`
 	Longitude float64 `json:"longitude"`
 	Timezone  string  `json:"timezone" validate:"required"`
+	Status    string  `json:"status" validate:"required,oneof=active inactive"`
 }
 
 type UpdateAirportRequest struct {

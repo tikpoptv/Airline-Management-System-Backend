@@ -21,7 +21,7 @@ func (r *FlightAssignmentRepository) AssignCrewToFlight(a *assignment.FlightCrew
 func (r *FlightAssignmentRepository) GetCrewByFlightID(flightID uint) ([]assignment.CrewAssignmentResponse, error) {
 	var result []assignment.CrewAssignmentResponse
 	err := r.db.Table("flight_crew_assignment AS fca").
-		Select(`c.crew_id, c.name, c.passport_number, c.role, fca.role_in_flight`).
+		Select(`c.crew_id, c.name, c.passport_number, c.role, fca.role_in_flight, c.status`).
 		Joins(`JOIN crew c ON c.crew_id = fca.crew_id`).
 		Where("fca.flight_id = ?", flightID).
 		Scan(&result).Error

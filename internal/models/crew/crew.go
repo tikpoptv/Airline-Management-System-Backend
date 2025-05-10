@@ -9,6 +9,7 @@ type Crew struct {
 	PassportExpiryDate string  `json:"passport_expiry_date"`
 	FlightHours        float64 `json:"flight_hours"`
 	UserID             *uint   `json:"user_id"` // optional
+	Status             string  `json:"status" gorm:"default:active"`
 }
 
 func (Crew) TableName() string {
