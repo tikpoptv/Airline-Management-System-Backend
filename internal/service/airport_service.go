@@ -26,6 +26,7 @@ func (s *AirportService) CreateAirport(req *airport.CreateAirportRequest) (*airp
 		Latitude:  req.Latitude,
 		Longitude: req.Longitude,
 		Timezone:  req.Timezone,
+		Status:    "active",
 	}
 
 	if err := s.repo.CreateAirport(newAirport); err != nil {
@@ -33,4 +34,8 @@ func (s *AirportService) CreateAirport(req *airport.CreateAirportRequest) (*airp
 	}
 
 	return newAirport, nil
+}
+
+func (s *AirportService) UpdateAirport(id uint, req *airport.UpdateAirportRequest) error {
+	return s.repo.UpdateAirport(id, req)
 }

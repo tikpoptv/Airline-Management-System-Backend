@@ -44,3 +44,11 @@ func (s *RouteService) CreateRoute(req *route.CreateRouteRequest) (*route.RouteB
 		Status:            newRoute.Status,
 	}, nil
 }
+
+func (s *RouteService) UpdateRouteStatus(routeID uint, req *route.UpdateRouteStatusRequest) error {
+	if req.Status != "active" && req.Status != "inactive" {
+		return errors.New("status must be either 'active' or 'inactive'")
+	}
+
+	return s.repo.UpdateRouteStatus(routeID, req.Status)
+}

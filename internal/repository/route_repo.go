@@ -29,3 +29,7 @@ func (r *RouteRepository) GetAllRoutes() ([]route.Route, error) {
 func (r *RouteRepository) CreateRoute(entity *route.RouteEntity) error {
 	return r.db.Create(entity).Error
 }
+
+func (r *RouteRepository) UpdateRouteStatus(routeID uint, status string) error {
+	return r.db.Model(&route.RouteEntity{}).Where("route_id = ?", routeID).Update("status", status).Error
+}

@@ -9,6 +9,7 @@ type Airport struct {
 	Latitude  float64 `json:"latitude"`
 	Longitude float64 `json:"longitude"`
 	Timezone  string  `json:"timezone"`
+	Status    string  `json:"status"`
 }
 
 func (Airport) TableName() string {

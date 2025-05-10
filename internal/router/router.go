@@ -42,11 +42,13 @@ func SetupRoutes(e *echo.Echo, c *container.Container) {
 	routeGroup := api.Group("/routes", middleware.JWTMiddleware, middleware.RequireRole("admin"))
 	routeGroup.GET("", c.RouteHandler.ListRoutes)
 	routeGroup.POST("", c.RouteHandler.CreateRoute)
+	routeGroup.PUT("/:id/status", c.RouteHandler.UpdateRouteStatus)
 
 	// Airport Routes (admin only)
 	airportGroup := api.Group("/airports", middleware.JWTMiddleware, middleware.RequireRole("admin"))
 	airportGroup.GET("", c.AirportHandler.ListAirports)
 	airportGroup.POST("", c.AirportHandler.CreateAirport)
+	airportGroup.PUT("/:id", c.AirportHandler.UpdateAirport)
 
 	// Crew Routes (admin only)
 	crewGroup := api.Group("/crew", middleware.JWTMiddleware, middleware.RequireRole("admin"))

@@ -25,3 +25,15 @@ func (r *AirportRepository) GetAllAirports() ([]airport.Airport, error) {
 func (r *AirportRepository) CreateAirport(a *airport.Airport) error {
 	return r.db.Create(a).Error
 }
+
+func (r *AirportRepository) UpdateAirport(id uint, req *airport.UpdateAirportRequest) error {
+	return r.db.Model(&airport.Airport{}).Where("airport_id = ?", id).Updates(map[string]interface{}{
+		"name":      req.Name,
+		"city":      req.City,
+		"country":   req.Country,
+		"latitude":  req.Latitude,
+		"longitude": req.Longitude,
+		"timezone":  req.Timezone,
+		"status":    req.Status,
+	}).Error
+}

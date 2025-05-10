@@ -3,6 +3,7 @@ package handler
 import (
 	"airline-management-system/internal/service"
 	"net/http"
+	"strconv"
 
 	"github.com/labstack/echo/v4"
 
@@ -40,4 +41,25 @@ func (h *RouteHandler) CreateRoute(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusCreated, newRoute)
+}
+
+func (h *RouteHandler) UpdateRouteStatus(c echo.Context) error {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": "invalid route id"})
+	}
+
+	var req routeModel.UpdateRouteStatusRequest
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": "invalid request"})
+	}
+	if err := c.Validate(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": err.Error()})
+	}
+
+	if err := h.routeService.UpdateRouteStatus(uint(id), &req); err != nil {
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": err.Error()})
+	}
+
+	return c.JSON(http.StatusOK, echo.Map{"message": "route status updated successfully"})
 }
