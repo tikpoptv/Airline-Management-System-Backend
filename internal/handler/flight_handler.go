@@ -182,3 +182,31 @@ func (h *FlightHandler) GetFlightsByAircraftID(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, flights)
 }
+
+func (h *FlightHandler) GetFlightCrewInfo(c echo.Context) error {
+	// Get flight ID from URL parameter
+	flightIDStr := c.Param("flight_id")
+	flightID, err := strconv.ParseUint(flightIDStr, 10, 64)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": "invalid flight ID"})
+	}
+
+	// Get user ID and role from JWT token
+	userIDRaw := c.Get("user_id")
+	userIDFloat, ok := userIDRaw.(float64)
+	if !ok {
+		return c.JSON(http.StatusUnauthorized, echo.Map{"error": "unauthorized"})
+	}
+	userID := uint(userIDFloat)
+
+	// Get crew information
+	crewInfo, err := h.assignmentService.GetFlightCrewInfo(uint(flightID), userID)
+	if err != nil {
+		if err.Error() == "unauthorized access" {
+			return c.JSON(http.StatusForbidden, echo.Map{"error": err.Error()})
+		}
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "failed to fetch crew information"})
+	}
+
+	return c.JSON(http.StatusOK, crewInfo)
+}

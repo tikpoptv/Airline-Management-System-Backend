@@ -37,6 +37,14 @@ func SetupRoutes(e *echo.Echo, c *container.Container) {
 	flightGroup.DELETE("/:id", c.FlightHandler.DeleteFlight)
 	flightGroup.POST("/:flight_id/assign-crew", c.FlightHandler.AssignCrewToFlight)
 	flightGroup.GET("/:flight_id/crew", c.FlightHandler.GetFlightCrewList)
+	flightGroup.GET("/:flight_id/passengers", c.PassengerHandler.GetFlightPassengers)
+
+	// Flight Crew Routes (admin and crew only)
+	api.GET("/flights/:flight_id/crew-info",
+		c.FlightHandler.GetFlightCrewInfo,
+		middleware.JWTMiddleware,
+		middleware.RequireRole("admin", "crew"),
+	)
 
 	// Route Routes (admin only)
 	routeGroup := api.Group("/routes", middleware.JWTMiddleware, middleware.RequireRole("admin"))

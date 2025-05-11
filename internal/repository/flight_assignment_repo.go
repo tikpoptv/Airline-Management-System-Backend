@@ -48,3 +48,34 @@ func (r *FlightAssignmentRepository) GetAssignedFlightsByCrewID(crewID uint) ([]
 	}
 	return assignments, nil
 }
+
+func (r *FlightAssignmentRepository) GetCrewForPassenger(flightID uint) (*assignment.FlightCrewInfoResponse, error) {
+	var result assignment.FlightCrewInfoResponse
+
+	// Get flight code
+	if err := r.db.Table("flight").
+		Select("flight_id, flight_code").
+		Where("flight_id = ?", flightID).
+		First(&result).Error; err != nil {
+		return nil, err
+	}
+
+	// Get crew members
+	var crewMembers []assignment.CrewInfoResponse
+	err := r.db.Table("flight_crew_assignment AS fca").
+		Select("c.name, c.role, fca.role_in_flight").
+		Joins("JOIN crew c ON c.crew_id = fca.crew_id").
+		Where("fca.flight_id = ? AND c.status = ?", flightID, "active").
+		Scan(&crewMembers).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	result.CrewMembers = crewMembers
+	return &result, nil
+}
+
+func (r *FlightAssignmentRepository) GetDB() *gorm.DB {
+	return r.db
+}

@@ -43,6 +43,9 @@ type Container struct {
 
 	// AirlineOwner
 	AirlineOwnerHandler *handler.AirlineOwnerHandler
+
+	// Passenger
+	PassengerHandler *handler.PassengerHandler
 }
 
 func NewContainer(db *gorm.DB) *Container {
@@ -54,6 +57,11 @@ func NewContainer(db *gorm.DB) *Container {
 	authHandler := handler.NewAuthHandler(userService)
 	adminUserHandler := handler.NewAdminUserHandler(userService)
 	userHandler := handler.NewUserHandler(userService)
+
+	// Passenger
+	passengerRepo := repository.NewPassengerRepository(db)
+	passengerService := service.NewPassengerService(passengerRepo)
+	passengerHandler := handler.NewPassengerHandler(passengerService)
 
 	// Aircraft
 	aircraftRepo := repository.NewAircraftRepository(db)
@@ -145,5 +153,8 @@ func NewContainer(db *gorm.DB) *Container {
 		// Aircraft Model
 		AircraftModelHandler: aircraftModelHandler,
 		AirlineOwnerHandler:  airlineOwnerHandler,
+
+		// Passenger
+		PassengerHandler: passengerHandler,
 	}
 }
