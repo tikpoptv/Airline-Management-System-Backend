@@ -30,6 +30,10 @@ func (s *CrewAssignmentService) GetAssignedFlightsByUserID(userID uint) ([]assig
 	return s.assignmentRepo.GetAssignedFlightsByCrewID(crewID)
 }
 
+func (s *CrewAssignmentService) GetAssignedFlightsByCrewID(crewID uint) ([]assignment.GetFlightCrewAssignment, error) {
+	return s.assignmentRepo.GetAssignedFlightsByCrewID(crewID)
+}
+
 func (s *MaintenanceTaskService) UpdateTaskStatus(logID uint, userID uint, req *maintenance.UpdateTaskStatusRequest) error {
 	ok, err := s.repo.IsTaskOwnedByUser(logID, userID)
 	if err != nil {

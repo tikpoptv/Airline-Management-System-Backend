@@ -58,6 +58,7 @@ func SetupRoutes(e *echo.Echo, c *container.Container) {
 	crewGroup.PUT("/:id", c.CrewHandler.UpdateCrew)
 	crewGroup.DELETE("/:id", c.CrewHandler.DeleteCrew)
 	crewGroup.GET("/:id/flight-hours", c.CrewHandler.GetCrewFlightHours)
+	crewGroup.GET("/:id/schedule", c.CrewAssignmentHandler.GetCrewSchedule)
 
 	api.GET("/crew/me/assignments",
 		c.CrewAssignmentHandler.GetMyAssignedFlights,
