@@ -38,3 +38,30 @@ func (h *PassengerHandler) GetFlightPassengers(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, passengers)
 }
+
+func (h *PassengerHandler) GetPassengerByID(c echo.Context) error {
+	// Get passenger ID from URL parameter
+	idStr := c.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 64)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, echo.Map{
+			"error": "invalid passenger ID",
+		})
+	}
+
+	// Get passenger details
+	passenger, err := h.service.GetPassengerByID(uint(id))
+	if err != nil {
+		if err.Error() == "passenger not found" {
+			return c.JSON(http.StatusNotFound, echo.Map{
+				"error": "passenger not found",
+			})
+		}
+		return c.JSON(http.StatusInternalServerError, echo.Map{
+			"error":  "failed to fetch passenger details",
+			"detail": err.Error(),
+		})
+	}
+
+	return c.JSON(http.StatusOK, passenger)
+}

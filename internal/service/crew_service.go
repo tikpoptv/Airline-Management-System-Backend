@@ -4,16 +4,23 @@ import (
 	"airline-management-system/internal/models/crew"
 	"airline-management-system/internal/repository"
 	"errors"
+	"fmt"
 	"strings"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 type CrewService struct {
-	repo *repository.CrewRepository
+	repo       *repository.CrewRepository
+	flightRepo *repository.FlightRepository
 }
 
-func NewCrewService(repo *repository.CrewRepository) *CrewService {
-	return &CrewService{repo}
+func NewCrewService(repo *repository.CrewRepository, flightRepo *repository.FlightRepository) *CrewService {
+	return &CrewService{
+		repo:       repo,
+		flightRepo: flightRepo,
+	}
 }
 
 func (s *CrewService) GetAllCrew() ([]crew.GetCrew, error) {
@@ -120,4 +127,61 @@ func (s *CrewService) UpdateCrewProfileFromUser(userID uint, req *crew.UpdateCre
 	}
 
 	return s.repo.UpdateCrewProfileByID(crewID, update)
+}
+
+func (s *CrewService) GetAvailableCrewsForFlight(flightID uint) ([]crew.AvailableCrewResponse, error) {
+	if flightID == 0 {
+		return nil, errors.New("invalid flight ID")
+	}
+
+	// Get flight departure time
+	flight, err := s.flightRepo.GetFlightByID(flightID)
+	if err != nil {
+		return nil, fmt.Errorf("error getting flight: %v", err)
+	}
+	if flight == nil {
+		return nil, errors.New("flight not found")
+	}
+
+	// Parse departure time
+	departureTime, err := time.Parse(time.RFC3339, flight.DepartureTime)
+	if err != nil {
+		return nil, fmt.Errorf("invalid departure time format: %v", err)
+	}
+
+	// Convert both times to UTC for comparison
+	now := time.Now().UTC()
+	departureTimeUTC := departureTime.UTC()
+
+	// For debugging
+	fmt.Printf("Now: %v, Departure: %v\n", now, departureTimeUTC)
+
+	crews, err := s.repo.GetAvailableCrewsForFlight(flightID, departureTime)
+	if err != nil {
+		return nil, fmt.Errorf("error getting available crews: %v", err)
+	}
+
+	return crews, nil
+}
+
+func (s *CrewService) GetCrewProfileByUserID(userID uint) (*crew.GetCrew, error) {
+	// หา crew_id จาก user_id
+	crewID, err := s.repo.GetCrewIDByUserID(userID)
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, errors.New("crew not found")
+		}
+		return nil, fmt.Errorf("error getting crew ID: %v", err)
+	}
+
+	// ดึงข้อมูล crew พร้อม user information
+	crewProfile, err := s.repo.GetCrewByID(crewID)
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, errors.New("crew not found")
+		}
+		return nil, fmt.Errorf("error getting crew profile: %v", err)
+	}
+
+	return crewProfile, nil
 }

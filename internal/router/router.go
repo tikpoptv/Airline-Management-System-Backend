@@ -38,6 +38,7 @@ func SetupRoutes(e *echo.Echo, c *container.Container) {
 	flightGroup.POST("/:flight_id/assign-crew", c.FlightHandler.AssignCrewToFlight)
 	flightGroup.GET("/:flight_id/crew", c.FlightHandler.GetFlightCrewList)
 	flightGroup.GET("/:flight_id/passengers", c.PassengerHandler.GetFlightPassengers)
+	flightGroup.GET("/:flight_id/available-crews", c.CrewHandler.GetAvailableCrewsForFlight)
 
 	// Flight Crew Routes (admin and crew only)
 	api.GET("/flights/:flight_id/crew-info",
@@ -67,6 +68,11 @@ func SetupRoutes(e *echo.Echo, c *container.Container) {
 	crewGroup.DELETE("/:id", c.CrewHandler.DeleteCrew)
 	crewGroup.GET("/:id/flight-hours", c.CrewHandler.GetCrewFlightHours)
 	crewGroup.GET("/:id/schedule", c.CrewAssignmentHandler.GetCrewSchedule)
+
+	api.GET("/crew/me",
+		c.CrewHandler.GetMyCrewProfile,
+		middleware.JWTMiddleware,
+	)
 
 	api.GET("/crew/me/assignments",
 		c.CrewAssignmentHandler.GetMyAssignedFlights,
@@ -102,4 +108,8 @@ func SetupRoutes(e *echo.Echo, c *container.Container) {
 
 	modelGroup.GET("/aircraft", c.AircraftModelHandler.GetAircraftModels)
 	modelGroup.GET("/airline", c.AirlineOwnerHandler.GetAirlineOwners)
+
+	// Passenger Routes (admin only)
+	passengerGroup := api.Group("/passengers", middleware.JWTMiddleware, middleware.RequireRole("admin"))
+	passengerGroup.GET("/:id", c.PassengerHandler.GetPassengerByID)
 }

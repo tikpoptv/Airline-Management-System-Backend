@@ -21,3 +21,14 @@ func (s *PassengerService) GetPassengersByFlightID(flightID uint) ([]passenger.P
 	}
 	return passengers, nil
 }
+
+func (s *PassengerService) GetPassengerByID(id uint) (*passenger.PassengerDetailResponse, error) {
+	passenger, err := s.repo.GetPassengerByID(id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get passenger: %v", err)
+	}
+	if passenger == nil {
+		return nil, fmt.Errorf("passenger not found")
+	}
+	return passenger, nil
+}

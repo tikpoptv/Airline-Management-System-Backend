@@ -89,7 +89,7 @@ func NewContainer(db *gorm.DB) *Container {
 
 	// Crew
 	crewRepo := repository.NewCrewRepository(db)
-	crewService := service.NewCrewService(crewRepo)
+	crewService := service.NewCrewService(crewRepo, flightRepo)
 	crewHandler := handler.NewCrewHandler(crewService)
 
 	assignmentRepo := repository.NewFlightAssignmentRepository(db)

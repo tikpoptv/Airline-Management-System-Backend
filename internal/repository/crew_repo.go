@@ -2,6 +2,7 @@ package repository
 
 import (
 	"airline-management-system/internal/models/crew"
+	"time"
 
 	"gorm.io/gorm"
 )
@@ -88,4 +89,44 @@ func (r *CrewRepository) IsPassportNumberTakenExceptID(passport string, excludeI
 		return false, err
 	}
 	return count > 0, nil
+}
+
+func (r *CrewRepository) GetAvailableCrewsForFlight(flightID uint, departureTime time.Time) ([]crew.AvailableCrewResponse, error) {
+	var crews []crew.AvailableCrewResponse
+
+	// Get crews that:
+	// 1. Are active
+	// 2. Have valid license and passport
+	// 3. Not assigned to other flights at the same time
+	err := r.db.Table("crew c").
+		Select(`
+			c.crew_id,
+			c.name,
+			c.role,
+			c.flight_hours,
+			c.status,
+			CASE 
+				WHEN c.license_expiry_date > ? THEN true 
+				ELSE false 
+			END as license_valid
+		`, departureTime).
+		Where("c.status = ?", "active").
+		Where("c.license_expiry_date > ?", departureTime).
+		Where("c.passport_expiry_date > ?", departureTime).
+		// Exclude crews that are already assigned to other flights at the same time
+		Where(`NOT EXISTS (
+			SELECT 1 FROM flight_crew_assignment fca
+			JOIN flight f ON f.flight_id = fca.flight_id
+			WHERE fca.crew_id = c.crew_id
+			AND f.flight_id != ?
+			AND f.departure_time <= ?
+			AND f.arrival_time >= ?
+		)`, flightID, departureTime, departureTime).
+		Find(&crews).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return crews, nil
 }

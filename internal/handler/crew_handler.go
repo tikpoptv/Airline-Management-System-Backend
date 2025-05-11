@@ -3,8 +3,10 @@ package handler
 import (
 	"airline-management-system/internal/service"
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
@@ -141,4 +143,63 @@ func (h *CrewHandler) UpdateMyCrewProfile(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, echo.Map{"message": "crew profile updated successfully"})
+}
+
+func (h *CrewHandler) GetAvailableCrewsForFlight(c echo.Context) error {
+	// Get flight ID from path parameter
+	flightIDStr := c.Param("flight_id")
+	flightID, err := strconv.ParseUint(flightIDStr, 10, 64)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, echo.Map{
+			"error": "invalid flight ID",
+		})
+	}
+
+	crews, err := h.crewService.GetAvailableCrewsForFlight(uint(flightID))
+	if err != nil {
+		switch {
+		case err.Error() == "flight not found":
+			return c.JSON(http.StatusNotFound, echo.Map{
+				"error": "flight not found",
+			})
+		case strings.Contains(err.Error(), "invalid departure time format"):
+			return c.JSON(http.StatusBadRequest, echo.Map{
+				"error": err.Error(),
+			})
+		case strings.Contains(err.Error(), "flight departure time must be in the future"):
+			return c.JSON(http.StatusBadRequest, echo.Map{
+				"error": err.Error(),
+			})
+		default:
+			return c.JSON(http.StatusInternalServerError, echo.Map{
+				"error": fmt.Sprintf("failed to fetch available crews: %v", err),
+			})
+		}
+	}
+
+	return c.JSON(http.StatusOK, crews)
+}
+
+func (h *CrewHandler) GetMyCrewProfile(c echo.Context) error {
+	// ดึง user_id จาก JWT context
+	userIDRaw := c.Get("user_id")
+	userIDFloat, ok := userIDRaw.(float64)
+	if !ok {
+		return c.JSON(http.StatusUnauthorized, echo.Map{"error": "unauthorized"})
+	}
+	userID := uint(userIDFloat)
+
+	// เรียก service เพื่อดึงข้อมูล
+	crewProfile, err := h.crewService.GetCrewProfileByUserID(userID)
+	if err != nil {
+		if err.Error() == "crew not found" {
+			return c.JSON(http.StatusNotFound, echo.Map{
+				"error":   "crew profile not found",
+				"message": "No crew profile found for this user. This might be because you are not registered as a crew member.",
+			})
+		}
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "failed to retrieve crew profile"})
+	}
+
+	return c.JSON(http.StatusOK, crewProfile)
 }
