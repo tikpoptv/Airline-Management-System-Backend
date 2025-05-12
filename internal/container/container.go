@@ -32,8 +32,9 @@ type Container struct {
 	CrewAssignmentHandler *handler.CrewAssignmentHandler
 
 	// Maintenance
-	MaintenanceHandler     *handler.MaintenanceHandler
-	MaintenanceTaskHandler *handler.MaintenanceTaskHandler
+	MaintenanceHandler      *handler.MaintenanceHandler
+	MaintenanceTaskHandler  *handler.MaintenanceTaskHandler
+	MaintenanceStatsHandler *handler.MaintenanceStatsHandler
 
 	// Payment
 	PaymentHandler *handler.PaymentHandler
@@ -109,6 +110,11 @@ func NewContainer(db *gorm.DB) *Container {
 	taskService := service.NewMaintenanceTaskService(taskRepo)
 	taskHandler := handler.NewMaintenanceTaskHandler(taskService)
 
+	// Maintenance Stats
+	maintenanceStatsRepo := repository.NewMaintenanceStatsRepository(db)
+	maintenanceStatsService := service.NewMaintenanceStatsService(maintenanceStatsRepo)
+	maintenanceStatsHandler := handler.NewMaintenanceStatsHandler(maintenanceStatsService)
+
 	// Payment
 	paymentRepo := repository.NewPaymentRepository(db)
 	paymentService := service.NewPaymentService(paymentRepo)
@@ -152,8 +158,9 @@ func NewContainer(db *gorm.DB) *Container {
 		CrewAssignmentHandler: crewAssignmentHandler,
 
 		// Maintenance
-		MaintenanceHandler:     maintenanceHandler,
-		MaintenanceTaskHandler: taskHandler,
+		MaintenanceHandler:      maintenanceHandler,
+		MaintenanceTaskHandler:  taskHandler,
+		MaintenanceStatsHandler: maintenanceStatsHandler,
 
 		// Payment
 		PaymentHandler: paymentHandler,

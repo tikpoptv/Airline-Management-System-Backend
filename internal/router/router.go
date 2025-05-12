@@ -105,6 +105,13 @@ func SetupRoutes(e *echo.Echo, c *container.Container) {
 	taskGroup.GET("/me", c.MaintenanceTaskHandler.GetMyTasks)
 	taskGroup.PUT("/:id/status", c.MaintenanceTaskHandler.UpdateTaskStatus)
 
+	// Maintenance Stats (admin, maintenance only)
+	api.GET("/maintenance-logs/stats",
+		c.MaintenanceStatsHandler.GetMaintenanceStats,
+		middleware.JWTMiddleware,
+		middleware.RequireRole("admin", "maintenance"),
+	)
+
 	// Payment Routes (admin, finance, maintenance)
 	paymentGroup := api.Group("/payments", middleware.JWTMiddleware, middleware.RequireRole("admin", "finance", "maintenance"))
 	paymentGroup.GET("", c.PaymentHandler.ListPayments)
