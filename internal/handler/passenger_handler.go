@@ -17,6 +17,43 @@ func NewPassengerHandler(service *service.PassengerService) *PassengerHandler {
 	return &PassengerHandler{service}
 }
 
+func (h *PassengerHandler) ListAllPassengers(c echo.Context) error {
+	// Get pagination parameters from query
+	pageStr := c.QueryParam("page")
+	pageSizeStr := c.QueryParam("page_size")
+
+	// Default values
+	page := 1
+	pageSize := 10
+
+	// Parse page if provided
+	if pageStr != "" {
+		parsedPage, err := strconv.Atoi(pageStr)
+		if err == nil && parsedPage > 0 {
+			page = parsedPage
+		}
+	}
+
+	// Parse page size if provided
+	if pageSizeStr != "" {
+		parsedPageSize, err := strconv.Atoi(pageSizeStr)
+		if err == nil && parsedPageSize > 0 && parsedPageSize <= 100 {
+			pageSize = parsedPageSize
+		}
+	}
+
+	// Get passengers from service
+	passengers, err := h.service.GetAllPassengers(page, pageSize)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, echo.Map{
+			"error":  "failed to fetch passengers",
+			"detail": err.Error(),
+		})
+	}
+
+	return c.JSON(http.StatusOK, passengers)
+}
+
 func (h *PassengerHandler) GetFlightPassengers(c echo.Context) error {
 	// Get flight ID from URL parameter
 	flightIDStr := c.Param("flight_id")
@@ -64,4 +101,49 @@ func (h *PassengerHandler) GetPassengerByID(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, passenger)
+}
+
+func (h *PassengerHandler) SearchPassengers(c echo.Context) error {
+	// Get search query
+	query := c.QueryParam("q")
+	if query == "" {
+		return c.JSON(http.StatusBadRequest, echo.Map{
+			"error": "search query parameter 'q' is required",
+		})
+	}
+
+	// Get pagination parameters from query
+	pageStr := c.QueryParam("page")
+	pageSizeStr := c.QueryParam("page_size")
+
+	// Default values
+	page := 1
+	pageSize := 10
+
+	// Parse page if provided
+	if pageStr != "" {
+		parsedPage, err := strconv.Atoi(pageStr)
+		if err == nil && parsedPage > 0 {
+			page = parsedPage
+		}
+	}
+
+	// Parse page size if provided
+	if pageSizeStr != "" {
+		parsedPageSize, err := strconv.Atoi(pageSizeStr)
+		if err == nil && parsedPageSize > 0 && parsedPageSize <= 100 {
+			pageSize = parsedPageSize
+		}
+	}
+
+	// Search passengers
+	results, err := h.service.SearchPassengers(query, page, pageSize)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, echo.Map{
+			"error":  "failed to search passengers",
+			"detail": err.Error(),
+		})
+	}
+
+	return c.JSON(http.StatusOK, results)
 }

@@ -125,11 +125,19 @@ func SetupRoutes(e *echo.Echo, c *container.Container) {
 
 	// Passenger Routes (admin only)
 	passengerGroup := api.Group("/passengers", middleware.JWTMiddleware, middleware.RequireRole("admin"))
+	passengerGroup.GET("", c.PassengerHandler.ListAllPassengers)
+	passengerGroup.GET("/search", c.PassengerHandler.SearchPassengers)
 	passengerGroup.GET("/:id", c.PassengerHandler.GetPassengerByID)
 
 	// Dashboard Routes (admin only)
 	api.GET("/dashboard/stats",
 		c.DashboardHandler.GetDashboardStats,
+		middleware.JWTMiddleware,
+		middleware.RequireRole("admin"),
+	)
+
+	api.GET("/dashboard/crew-schedule/today",
+		c.DashboardHandler.GetTodayCrewSchedule,
 		middleware.JWTMiddleware,
 		middleware.RequireRole("admin"),
 	)

@@ -15,6 +15,35 @@ func NewPassengerRepository(db *gorm.DB) *PassengerRepository {
 	return &PassengerRepository{db}
 }
 
+// GetAllPassengers retrieves all passengers with pagination
+func (r *PassengerRepository) GetAllPassengers(page, pageSize int) ([]passenger.PassengerResponse, int64, error) {
+	var passengers []passenger.PassengerResponse
+	var total int64
+
+	// Count total records
+	if err := r.db.Table("passenger").Count(&total).Error; err != nil {
+		return nil, 0, fmt.Errorf("error counting passengers: %v", err)
+	}
+
+	// Calculate offset
+	offset := (page - 1) * pageSize
+
+	// Get paginated records
+	err := r.db.Table("passenger").
+		Select("passenger_id, name, passport_number, nationality, flight_id, special_requests, user_id").
+		Order("passenger_id ASC").
+		Limit(pageSize).
+		Offset(offset).
+		Scan(&passengers).Error
+
+	if err != nil {
+		return nil, 0, fmt.Errorf("error fetching passengers: %v", err)
+	}
+
+	return passengers, total, nil
+}
+
+// GetPassengersByFlightID retrieves passengers for a specific flight
 func (r *PassengerRepository) GetPassengersByFlightID(flightID uint) ([]passenger.PassengerResponse, error) {
 	var passengers []passenger.PassengerResponse
 	err := r.db.Table("passenger").
@@ -30,6 +59,7 @@ func (r *PassengerRepository) GetPassengersByFlightID(flightID uint) ([]passenge
 	return passengers, nil
 }
 
+// GetPassengerByID retrieves a specific passenger with flight details
 func (r *PassengerRepository) GetPassengerByID(id uint) (*passenger.PassengerDetailResponse, error) {
 	var result passenger.PassengerQueryResult
 
@@ -58,4 +88,38 @@ func (r *PassengerRepository) GetPassengerByID(id uint) (*passenger.PassengerDet
 	}
 
 	return result.MapToDetailResponse(), nil
+}
+
+// SearchPassengers searches for passengers based on name, passport number, or nationality
+func (r *PassengerRepository) SearchPassengers(query string, page, pageSize int) ([]passenger.PassengerResponse, int64, error) {
+	var passengers []passenger.PassengerResponse
+	var total int64
+
+	// Prepare search query
+	searchQuery := "%" + query + "%"
+
+	// Count total matching records
+	if err := r.db.Table("passenger").
+		Where("name ILIKE ? OR passport_number ILIKE ? OR nationality ILIKE ?", searchQuery, searchQuery, searchQuery).
+		Count(&total).Error; err != nil {
+		return nil, 0, fmt.Errorf("error counting search results: %v", err)
+	}
+
+	// Calculate offset
+	offset := (page - 1) * pageSize
+
+	// Get paginated records matching search criteria
+	err := r.db.Table("passenger").
+		Select("passenger_id, name, passport_number, nationality, flight_id, special_requests, user_id").
+		Where("name ILIKE ? OR passport_number ILIKE ? OR nationality ILIKE ?", searchQuery, searchQuery, searchQuery).
+		Order("passenger_id ASC").
+		Limit(pageSize).
+		Offset(offset).
+		Scan(&passengers).Error
+
+	if err != nil {
+		return nil, 0, fmt.Errorf("error searching passengers: %v", err)
+	}
+
+	return passengers, total, nil
 }

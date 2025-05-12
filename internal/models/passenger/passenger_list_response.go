@@ -10,6 +10,14 @@ type PassengerResponse struct {
 	UserID          *uint  `json:"user_id,omitempty"`
 }
 
+type AllPassengersResponse struct {
+	Passengers []PassengerResponse `json:"passengers"`
+	Total      int64               `json:"total"`
+	Page       int                 `json:"page"`
+	PageSize   int                 `json:"page_size"`
+	TotalPages int                 `json:"total_pages"`
+}
+
 type FlightPassengerListResponse struct {
 	FlightID    uint                `json:"flight_id"`
 	FlightCode  string              `json:"flight_code"`
