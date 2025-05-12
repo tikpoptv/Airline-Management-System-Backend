@@ -134,3 +134,10 @@ func (s *FlightService) DeleteFlight(id uint) error {
 func (s *FlightService) GetFlightsByAircraftID(aircraftID uint) ([]flight.Flight, error) {
 	return s.repo.GetFlightsByAircraftID(aircraftID)
 }
+
+func (s *FlightService) GetTodayFlights(status string) ([]flight.Flight, error) {
+	if status == "" {
+		status = "all"
+	}
+	return s.repo.GetTodayFlights(status)
+}

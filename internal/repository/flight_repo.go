@@ -2,6 +2,9 @@ package repository
 
 import (
 	"airline-management-system/internal/models/flight"
+	"errors"
+	"strings"
+	"time"
 
 	"gorm.io/gorm"
 )
@@ -95,5 +98,48 @@ func (r *FlightRepository) GetFlightsByAircraftID(aircraftID uint) ([]flight.Fli
 	if err != nil {
 		return nil, err
 	}
+	return flights, nil
+}
+
+func (r *FlightRepository) GetTodayFlights(status string) ([]flight.Flight, error) {
+	var flights []flight.Flight
+
+	// Get today's date in UTC
+	now := time.Now().UTC()
+	startOfDay := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
+	endOfDay := startOfDay.Add(24 * time.Hour)
+
+	// Build query
+	query := r.db.
+		Preload("Aircraft").
+		Preload("Route").
+		Preload("Route.FromAirport").
+		Preload("Route.ToAirport").
+		Where("departure_time >= ? AND departure_time < ?", startOfDay.Format(time.RFC3339), endOfDay.Format(time.RFC3339))
+
+	// Add status filter if not "all"
+	if status != "all" {
+		validStatuses := map[string]bool{
+			"active":    true,
+			"delayed":   true,
+			"cancelled": true,
+		}
+		if !validStatuses[status] {
+			return nil, errors.New("invalid status. must be one of: all, active, delayed, cancelled")
+		}
+
+		if status == "active" {
+			query = query.Where("flight_status IN ?", []string{"Scheduled", "Boarding"})
+		} else {
+			query = query.Where("flight_status = ?", strings.Title(status))
+		}
+	}
+
+	// Execute query
+	err := query.Order("departure_time ASC").Find(&flights).Error
+	if err != nil {
+		return nil, err
+	}
+
 	return flights, nil
 }

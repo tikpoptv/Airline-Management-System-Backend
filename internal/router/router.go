@@ -40,6 +40,13 @@ func SetupRoutes(e *echo.Echo, c *container.Container) {
 	flightGroup.GET("/:flight_id/passengers", c.PassengerHandler.GetFlightPassengers)
 	flightGroup.GET("/:flight_id/available-crews", c.CrewHandler.GetAvailableCrewsForFlight)
 
+	// Flight Today Route (admin only)
+	api.GET("/flights/today",
+		c.FlightHandler.GetTodayFlights,
+		middleware.JWTMiddleware,
+		middleware.RequireRole("admin"),
+	)
+
 	// Flight Crew Routes (admin and crew only)
 	api.GET("/flights/:flight_id/crew-info",
 		c.FlightHandler.GetFlightCrewInfo,
@@ -112,4 +119,11 @@ func SetupRoutes(e *echo.Echo, c *container.Container) {
 	// Passenger Routes (admin only)
 	passengerGroup := api.Group("/passengers", middleware.JWTMiddleware, middleware.RequireRole("admin"))
 	passengerGroup.GET("/:id", c.PassengerHandler.GetPassengerByID)
+
+	// Dashboard Routes (admin only)
+	api.GET("/dashboard/stats",
+		c.DashboardHandler.GetDashboardStats,
+		middleware.JWTMiddleware,
+		middleware.RequireRole("admin"),
+	)
 }

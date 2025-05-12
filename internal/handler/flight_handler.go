@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"gorm.io/gorm"
 
@@ -209,4 +210,33 @@ func (h *FlightHandler) GetFlightCrewInfo(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, crewInfo)
+}
+
+func (h *FlightHandler) GetTodayFlights(c echo.Context) error {
+	// Get status from query parameter
+	status := c.QueryParam("status")
+
+	flights, err := h.flightService.GetTodayFlights(status)
+	if err != nil {
+		if strings.Contains(err.Error(), "invalid status") {
+			return c.JSON(http.StatusBadRequest, echo.Map{
+				"error": err.Error(),
+			})
+		}
+		return c.JSON(http.StatusInternalServerError, echo.Map{
+			"error": "failed to fetch today's flights",
+		})
+	}
+
+	if len(flights) == 0 {
+		return c.JSON(http.StatusOK, echo.Map{
+			"message": "no flights found for the specified criteria",
+			"flights": []interface{}{},
+		})
+	}
+
+	return c.JSON(http.StatusOK, echo.Map{
+		"total_flights": len(flights),
+		"flights":       flights,
+	})
 }

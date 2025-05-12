@@ -46,6 +46,9 @@ type Container struct {
 
 	// Passenger
 	PassengerHandler *handler.PassengerHandler
+
+	// Dashboard
+	DashboardHandler *handler.DashboardHandler
 }
 
 func NewContainer(db *gorm.DB) *Container {
@@ -121,6 +124,11 @@ func NewContainer(db *gorm.DB) *Container {
 	airlineOwnerService := service.NewAirlineOwnerService(airlineOwnerRepo)
 	airlineOwnerHandler := handler.NewAirlineOwnerHandler(airlineOwnerService)
 
+	// Dashboard
+	dashboardRepo := repository.NewDashboardRepository(db)
+	dashboardService := service.NewDashboardService(dashboardRepo)
+	dashboardHandler := handler.NewDashboardHandler(dashboardService)
+
 	return &Container{
 		// User
 		UserHandler:      userHandler,
@@ -156,5 +164,8 @@ func NewContainer(db *gorm.DB) *Container {
 
 		// Passenger
 		PassengerHandler: passengerHandler,
+
+		// Dashboard
+		DashboardHandler: dashboardHandler,
 	}
 }
